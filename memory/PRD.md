@@ -20,33 +20,32 @@ Build a production-ready web-based user analysis and segmentation platform as a 
 - JWT-based admin authentication
 - User data persistence in MongoDB
 
-## What's Been Implemented (January 26, 2026)
+## What's Been Implemented
 
-### Backend (FastAPI)
-- ✅ Assessment questions endpoint (`/api/questions`)
-- ✅ Assessment submission with score calculation (`/api/assessment/submit`)
-- ✅ Admin registration and login with JWT (`/api/admin/register`, `/api/admin/login`)
-- ✅ User listing with level filtering and search (`/api/admin/users`)
-- ✅ User detail with responses (`/api/admin/users/{user_id}`)
-- ✅ CSV export functionality (`/api/admin/export`)
-- ✅ Mock ActiveCampaign and WhatsApp integrations
+### January 26, 2026 - Initial MVP
+- Assessment flow with 10 questions (fiscal/innovation/accounting)
+- Typeform-style UX with progress bar
+- Scoring system with 5 levels
+- Result pages with VSL video embed
+- Calendly placeholder for levels 3-5
+- Admin dashboard with JWT auth
+- User table with filters/search
+- CSV export functionality
+- PWA configuration (manifest.json, service worker)
+- Mock integrations (ActiveCampaign, WhatsApp, Calendly)
 
-### Frontend (React PWA)
-- ✅ PWA configuration (manifest.json, service worker)
-- ✅ Swiss Brutalist design with Cabinet Grotesk + IBM Plex Sans fonts
-- ✅ Typeform-style assessment flow with progress bar
-- ✅ User info form with validation
-- ✅ Question screens with option selection animations
-- ✅ 5 Result pages with level-specific content
-- ✅ VSL video embed (placeholder YouTube)
-- ✅ Calendly placeholder for levels 3-5
-- ✅ Admin login/registration page
-- ✅ Admin dashboard with stats, filtering, search
-- ✅ User detail page with all responses
-- ✅ CSV download functionality
+### January 26, 2026 - Email Capture for Abandoned Assessments
+- ✅ User info captured BEFORE questions start (name, email, phone)
+- ✅ Users saved with "abandoned" status initially
+- ✅ Status changes to "completed" upon assessment submission
+- ✅ Admin dashboard shows Status column with color-coded badges
+- ✅ Admin can filter by status (All/Completed/Abandoned)
+- ✅ Stats display shows completed/abandoned counts separately
+- ✅ User detail page shows status and handles "No Responses" for abandoned
+- ✅ CSV export includes status column
 
 ### Database Schema (MongoDB)
-- `users`: id, name, email, phone, score, level, created_at
+- `users`: id, name, email, phone, score (nullable), level (nullable), status ("abandoned"/"completed"), created_at
 - `responses`: id, user_id, question, answer, score
 - `admins`: id, email, password (hashed), name, created_at
 
@@ -57,18 +56,19 @@ Build a production-ready web-based user analysis and segmentation platform as a 
 - [x] Scoring system and level assignment
 - [x] Admin authentication
 - [x] User management
+- [x] Email capture for lead recovery
 
 ### P1 - High Priority (Next)
 - [ ] Real ActiveCampaign integration
 - [ ] Real WhatsApp API integration
 - [ ] Real Calendly embed integration
-- [ ] Email notifications
+- [ ] Email notifications for completed assessments
 
 ### P2 - Medium Priority
+- [ ] Automated follow-up emails for abandoned assessments
 - [ ] Assessment analytics dashboard
 - [ ] A/B testing for questions
 - [ ] Multi-language support
-- [ ] Custom branding options
 
 ### P3 - Nice to Have
 - [ ] PDF export of results
@@ -79,5 +79,5 @@ Build a production-ready web-based user analysis and segmentation platform as a 
 1. Integrate real ActiveCampaign API when key provided
 2. Integrate WhatsApp Business API for admin notifications
 3. Add real Calendly embed URL
-4. Add user email notifications on completion
+4. Set up automated abandoned cart email sequence
 5. Add assessment retake tracking
