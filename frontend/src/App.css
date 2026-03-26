@@ -1,34 +1,83 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+/* App-specific styles */
+.assessment-container {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 6rem 1.5rem;
+  position: relative;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+.dashboard-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  min-height: 100vh;
+  background-color: rgba(244, 244, 245, 0.5);
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+@media (min-width: 1024px) {
+  .dashboard-layout {
+    grid-template-columns: 280px 1fr;
+  }
 }
 
-.App-link {
-    color: #61dafb;
+/* Animation classes */
+.fade-in {
+  animation: fadeIn 0.4s ease-out;
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-up {
+  animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Video container */
+.video-container {
+  position: relative;
+  padding-bottom: 56.25%;
+  height: 0;
+  overflow: hidden;
+}
+
+.video-container iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Calendly embed */
+.calendly-embed {
+  min-height: 650px;
+  width: 100%;
+}
+
+/* Category badge */
+.category-badge {
+  @apply text-xs font-semibold uppercase tracking-[0.2em] px-3 py-1 bg-[#0047FF]/10 text-[#0047FF];
 }
