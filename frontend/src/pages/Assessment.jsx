@@ -154,17 +154,17 @@ export default function Assessment() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FBFBFB]">
+      <div className="min-h-screen flex items-center justify-center bg-[#0F1219]">
         <div className="text-center">
-          <div className="w-8 h-8 border-2 border-[#0047FF] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading assessment...</p>
+          <div className="w-10 h-10 border-3 border-[#C41E3A] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-400">Cargando evaluación...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-[100dvh] bg-[#FBFBFB] relative">
+    <div className="min-h-[100dvh] bg-[#0F1219] relative">
       {/* Progress bar */}
       {step > 0 && (
         <div className="progress-bar" style={{ width: `${progress}%` }} />
@@ -178,24 +178,24 @@ export default function Assessment() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.4 }}
+            transition={{ duration: 0.5 }}
             className="assessment-container"
           >
             <div className="max-w-2xl text-center">
-              <span className="category-badge mb-6 inline-block">Assessment</span>
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tighter mb-6">
-                Fiscal & Innovation Assessment
+              <span className="category-badge mb-6 inline-block">Evaluación CEFIN</span>
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6 text-white">
+                Evaluación Fiscal e Innovación
               </h1>
-              <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-                Evaluate your organization's capabilities in fiscal studies, innovation, and accounting. 
-                This assessment takes approximately 5 minutes to complete.
+              <p className="text-lg text-gray-400 mb-8 leading-relaxed">
+                Evalúa las capacidades de tu organización en estudios fiscales, innovación y contabilidad. 
+                Esta evaluación toma aproximadamente 5 minutos.
               </p>
               <Button
                 data-testid="start-assessment-btn"
                 onClick={() => setStep(1)}
                 className="btn-primary text-lg"
               >
-                Start Assessment
+                Comenzar Evaluación
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </div>
@@ -209,31 +209,31 @@ export default function Assessment() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.4 }}
+            transition={{ duration: 0.5 }}
             className="assessment-container"
           >
             <div className="w-full max-w-md">
-              <span className="category-badge mb-6 inline-block">Step 1</span>
-              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-8">
-                Tell us about yourself
+              <span className="category-badge mb-6 inline-block">Paso 1</span>
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-8 text-white">
+                Cuéntanos sobre ti
               </h2>
               
               <div className="space-y-6">
                 <div>
-                  <Label htmlFor="name" className="text-sm font-medium">Full Name *</Label>
+                  <Label htmlFor="name" className="text-sm font-medium text-gray-300">Nombre Completo *</Label>
                   <Input
                     id="name"
                     data-testid="user-name-input"
                     value={userInfo.name}
                     onChange={(e) => setUserInfo({ ...userInfo, name: e.target.value })}
                     className="input-swiss mt-2"
-                    placeholder="John Doe"
+                    placeholder="Juan Pérez"
                   />
-                  {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+                  {errors.name && <p className="text-[#C41E3A] text-sm mt-1">{errors.name}</p>}
                 </div>
                 
                 <div>
-                  <Label htmlFor="email" className="text-sm font-medium">Email Address *</Label>
+                  <Label htmlFor="email" className="text-sm font-medium text-gray-300">Correo Electrónico *</Label>
                   <Input
                     id="email"
                     type="email"
@@ -241,22 +241,22 @@ export default function Assessment() {
                     value={userInfo.email}
                     onChange={(e) => setUserInfo({ ...userInfo, email: e.target.value })}
                     className="input-swiss mt-2"
-                    placeholder="john@company.com"
+                    placeholder="juan@empresa.com"
                   />
-                  {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+                  {errors.email && <p className="text-[#C41E3A] text-sm mt-1">{errors.email}</p>}
                 </div>
                 
                 <div>
-                  <Label htmlFor="phone" className="text-sm font-medium">Phone Number *</Label>
+                  <Label htmlFor="phone" className="text-sm font-medium text-gray-300">Teléfono *</Label>
                   <Input
                     id="phone"
                     data-testid="user-phone-input"
                     value={userInfo.phone}
                     onChange={(e) => setUserInfo({ ...userInfo, phone: e.target.value })}
                     className="input-swiss mt-2"
-                    placeholder="+1 234 567 8900"
+                    placeholder="+52 55 1234 5678"
                   />
-                  {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
+                  {errors.phone && <p className="text-[#C41E3A] text-sm mt-1">{errors.phone}</p>}
                 </div>
               </div>
 
@@ -268,7 +268,7 @@ export default function Assessment() {
                   className="btn-outline"
                 >
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back
+                  Atrás
                 </Button>
                 <Button
                   data-testid="continue-to-questions-btn"
@@ -279,11 +279,11 @@ export default function Assessment() {
                   {capturingInfo ? (
                     <>
                       <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
-                      Saving...
+                      Guardando...
                     </>
                   ) : (
                     <>
-                      Continue
+                      Continuar
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </>
                   )}
@@ -300,18 +300,18 @@ export default function Assessment() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.4 }}
+            transition={{ duration: 0.5 }}
             className="assessment-container"
           >
             <div className="w-full max-w-2xl">
               <div className="flex items-center justify-between mb-6">
                 <span className="category-badge">{questions[step - 2].category}</span>
-                <span className="text-sm text-muted-foreground">
-                  Question {step - 1} of {questions.length}
+                <span className="text-sm text-gray-400">
+                  Pregunta {step - 1} de {questions.length}
                 </span>
               </div>
               
-              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-8">
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-8 text-white">
                 {questions[step - 2].question}
               </h2>
 
@@ -327,7 +327,7 @@ export default function Assessment() {
                   >
                     <span>{option.label}</span>
                     {answers[questions[step - 2].id]?.label === option.label && (
-                      <CheckCircle className="h-6 w-6 text-[#0047FF]" weight="fill" />
+                      <CheckCircle className="h-6 w-6 text-[#C41E3A]" weight="fill" />
                     )}
                   </button>
                 ))}
@@ -341,7 +341,7 @@ export default function Assessment() {
                   className="btn-outline"
                 >
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back
+                  Atrás
                 </Button>
                 {isLastQuestion ? (
                   <Button
@@ -353,11 +353,11 @@ export default function Assessment() {
                     {submitting ? (
                       <>
                         <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
-                        Submitting...
+                        Enviando...
                       </>
                     ) : (
                       <>
-                        Submit Assessment
+                        Enviar Evaluación
                         <CheckCircle className="ml-2 h-5 w-5" />
                       </>
                     )}
@@ -368,7 +368,7 @@ export default function Assessment() {
                     onClick={handleNext}
                     className="btn-primary flex-1"
                   >
-                    Next Question
+                    Siguiente Pregunta
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 )}

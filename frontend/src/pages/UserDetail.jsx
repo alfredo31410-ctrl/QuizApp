@@ -25,8 +25,8 @@ const levelColors = {
 };
 
 const statusColors = {
-  completed: "bg-green-100 text-green-800",
-  abandoned: "bg-amber-100 text-amber-800",
+  completed: "bg-green-500/20 text-green-400 border border-green-500/30",
+  abandoned: "bg-amber-500/20 text-amber-400 border border-amber-500/30",
 };
 
 export default function UserDetail() {
@@ -67,8 +67,8 @@ export default function UserDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FBFBFB]">
-        <div className="w-8 h-8 border-2 border-[#0047FF] border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-[#0F1219]">
+        <div className="w-8 h-8 border-2 border-[#C41E3A] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -80,7 +80,7 @@ export default function UserDetail() {
   const { user, responses } = data;
 
   return (
-    <div className="min-h-screen bg-[#FBFBFB] p-6 lg:p-12">
+    <div className="min-h-screen bg-[#0F1219] p-6 lg:p-12">
       <div className="max-w-4xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -90,10 +90,10 @@ export default function UserDetail() {
             data-testid="back-to-dashboard-btn"
             variant="ghost"
             onClick={() => navigate("/admin/dashboard")}
-            className="mb-6"
+            className="mb-6 text-gray-400 hover:text-white"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
+            Volver al Dashboard
           </Button>
 
           {/* User Info Card */}
@@ -101,46 +101,46 @@ export default function UserDetail() {
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
               <div>
                 <div className="flex items-center gap-3 mb-4">
-                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight" data-testid="user-name">
+                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white" data-testid="user-name">
                     {user.name}
                   </h1>
-                  <span className={`px-2 py-1 text-xs font-semibold rounded ${statusColors[user.status] || 'bg-gray-100 text-gray-800'}`} data-testid="user-status">
+                  <span className={`px-2 py-1 text-xs font-semibold rounded ${statusColors[user.status] || 'bg-gray-500/20 text-gray-400'}`} data-testid="user-status">
                     {user.status === "abandoned" && <Warning className="inline h-3 w-3 mr-1" />}
-                    {user.status}
+                    {user.status === "completed" ? "Completado" : "Abandonado"}
                   </span>
                 </div>
                 
                 <div className="space-y-3">
-                  <div className="flex items-center gap-3 text-muted-foreground">
+                  <div className="flex items-center gap-3 text-gray-400">
                     <Envelope className="h-5 w-5" />
                     <span data-testid="user-email">{user.email}</span>
                   </div>
-                  <div className="flex items-center gap-3 text-muted-foreground">
+                  <div className="flex items-center gap-3 text-gray-400">
                     <Phone className="h-5 w-5" />
                     <span data-testid="user-phone">{user.phone}</span>
                   </div>
-                  <div className="flex items-center gap-3 text-muted-foreground">
+                  <div className="flex items-center gap-3 text-gray-400">
                     <Calendar className="h-5 w-5" />
-                    <span data-testid="user-date">{new Date(user.created_at).toLocaleString()}</span>
+                    <span data-testid="user-date">{new Date(user.created_at).toLocaleString('es-MX')}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="flex flex-col items-center gap-4 p-6 bg-[#F4F4F5]">
+              <div className="flex flex-col items-center gap-4 p-6 bg-[#252B3B] rounded-lg">
                 {user.status === "completed" ? (
                   <>
                     <div className="text-center">
-                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Score</p>
-                      <p className="text-4xl font-bold" data-testid="user-score">{user.score}</p>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">Puntuación</p>
+                      <p className="text-4xl font-bold text-white" data-testid="user-score">{user.score}</p>
                     </div>
-                    <span className={`px-4 py-2 text-sm font-semibold ${levelColors[user.level]}`} data-testid="user-level">
-                      Level {user.level}
+                    <span className={`px-4 py-2 text-sm font-semibold rounded ${levelColors[user.level]}`} data-testid="user-level">
+                      Nivel {user.level}
                     </span>
                   </>
                 ) : (
                   <div className="text-center">
                     <Warning className="h-8 w-8 text-amber-500 mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground">Assessment not completed</p>
+                    <p className="text-sm text-gray-400">Evaluación no completada</p>
                   </div>
                 )}
               </div>
@@ -150,23 +150,23 @@ export default function UserDetail() {
           {/* Responses Table */}
           {responses.length > 0 ? (
             <div className="card-swiss">
-              <h2 className="text-xl font-bold mb-6">Assessment Responses</h2>
+              <h2 className="text-xl font-bold mb-6 text-white">Respuestas de la Evaluación</h2>
               <div className="overflow-x-auto">
                 <Table className="table-swiss">
                   <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[50%]">Question</TableHead>
-                      <TableHead>Answer</TableHead>
-                      <TableHead>Score</TableHead>
+                    <TableRow className="border-white/10">
+                      <TableHead className="w-[50%] text-gray-400">Pregunta</TableHead>
+                      <TableHead className="text-gray-400">Respuesta</TableHead>
+                      <TableHead className="text-gray-400">Puntos</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {responses.map((response, index) => (
-                      <TableRow key={response.id} data-testid={`response-row-${index}`}>
-                        <TableCell className="font-medium">{response.question}</TableCell>
-                        <TableCell>{response.answer}</TableCell>
+                      <TableRow key={response.id} data-testid={`response-row-${index}`} className="border-white/10">
+                        <TableCell className="font-medium text-white">{response.question}</TableCell>
+                        <TableCell className="text-gray-300">{response.answer}</TableCell>
                         <TableCell>
-                          <span className="font-semibold">{response.score}</span>
+                          <span className="font-semibold text-[#C41E3A]">{response.score}</span>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -177,9 +177,9 @@ export default function UserDetail() {
           ) : (
             <div className="card-swiss text-center py-12">
               <Warning className="h-12 w-12 text-amber-500 mx-auto mb-4" />
-              <h2 className="text-xl font-bold mb-2">No Responses Yet</h2>
-              <p className="text-muted-foreground">
-                This user abandoned the assessment before answering any questions.
+              <h2 className="text-xl font-bold mb-2 text-white">Sin Respuestas Aún</h2>
+              <p className="text-gray-400">
+                Este usuario abandonó la evaluación antes de responder alguna pregunta.
               </p>
             </div>
           )}

@@ -52,43 +52,43 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-[#FBFBFB] flex items-center justify-center px-6">
+    <div className="min-h-[100dvh] bg-[#0F1219] flex items-center justify-center px-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
+        transition={{ duration: 0.5 }}
         className="w-full max-w-md"
       >
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-[#0A0A0A] flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-[#C41E3A] rounded-lg flex items-center justify-center mx-auto mb-4">
             <Lock className="h-8 w-8 text-white" weight="fill" />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">Admin Portal</h1>
-          <p className="text-muted-foreground mt-2">
-            {isLogin ? "Sign in to access the dashboard" : "Create an admin account"}
+          <h1 className="text-3xl font-bold tracking-tight text-white">Portal Admin</h1>
+          <p className="text-gray-400 mt-2">
+            {isLogin ? "Inicia sesión para acceder al dashboard" : "Crea una cuenta de administrador"}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="card-swiss">
           {!isLogin && (
             <div className="mb-4">
-              <Label htmlFor="name" className="text-sm font-medium">Full Name</Label>
+              <Label htmlFor="name" className="text-sm font-medium text-gray-300">Nombre Completo</Label>
               <Input
                 id="name"
                 data-testid="admin-name-input"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 className="input-swiss mt-2"
-                placeholder="Admin Name"
+                placeholder="Nombre del Admin"
                 required={!isLogin}
               />
             </div>
           )}
 
           <div className="mb-4">
-            <Label htmlFor="email" className="text-sm font-medium">Email Address</Label>
+            <Label htmlFor="email" className="text-sm font-medium text-gray-300">Correo Electrónico</Label>
             <div className="relative mt-2">
-              <Envelope className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <Envelope className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
               <Input
                 id="email"
                 type="email"
@@ -96,16 +96,16 @@ export default function AdminLogin() {
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 className="input-swiss pl-10"
-                placeholder="admin@company.com"
+                placeholder="admin@empresa.com"
                 required
               />
             </div>
           </div>
 
           <div className="mb-6">
-            <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+            <Label htmlFor="password" className="text-sm font-medium text-gray-300">Contraseña</Label>
             <div className="relative mt-2">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
               <Input
                 id="password"
                 type="password"
@@ -128,9 +128,9 @@ export default function AdminLogin() {
             {loading ? (
               <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : isLogin ? (
-              "Sign In"
+              "Iniciar Sesión"
             ) : (
-              "Create Account"
+              "Crear Cuenta"
             )}
           </Button>
 
@@ -139,20 +139,20 @@ export default function AdminLogin() {
               type="button"
               data-testid="toggle-auth-mode-btn"
               onClick={() => setIsLogin(!isLogin)}
-              className="text-[#0047FF] text-sm hover:underline"
+              className="text-[#C41E3A] text-sm hover:underline"
             >
-              {isLogin ? "Need an account? Register" : "Already have an account? Sign in"}
+              {isLogin ? "¿Necesitas una cuenta? Regístrate" : "¿Ya tienes cuenta? Inicia sesión"}
             </button>
           </div>
         </form>
 
-        <p className="text-center text-muted-foreground text-sm mt-6">
+        <p className="text-center text-gray-500 text-sm mt-6">
           <button
             data-testid="back-to-assessment-btn"
             onClick={() => navigate("/")}
-            className="hover:underline"
+            className="hover:underline hover:text-gray-300"
           >
-            Back to Assessment
+            Volver a la Evaluación
           </button>
         </p>
       </motion.div>

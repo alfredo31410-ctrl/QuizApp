@@ -1,11 +1,11 @@
 {
-  "name": "Fiscal & Innovation Assessment",
-  "short_name": "FIA App",
-  "description": "User analysis and segmentation platform for fiscal studies, innovation, and accounting assessments",
+  "name": "CEFIN - Evaluación Fiscal",
+  "short_name": "CEFIN",
+  "description": "Plataforma de evaluación y segmentación para estudios fiscales, innovación y contabilidad",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0A0A0A",
-  "theme_color": "#FBFBFB",
+  "background_color": "#0F1219",
+  "theme_color": "#C41E3A",
   "orientation": "portrait-primary",
   "icons": [
     {

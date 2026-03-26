@@ -1,24 +1,29 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
-@import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,700,800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: #FBFBFB;
-  --foreground: #0A0A0A;
-  --primary: #0047FF;
+  /* CEFIN Color Palette */
+  --background: #0F1219;
+  --background-secondary: #1A1F2E;
+  --foreground: #FFFFFF;
+  --primary: #C41E3A;
+  --primary-hover: #A01830;
   --primary-foreground: #FFFFFF;
-  --surface: #FFFFFF;
-  --border-color: rgba(10, 10, 10, 0.15);
-  --muted: #F4F4F5;
-  --muted-foreground: #71717A;
+  --surface: #1A1F2E;
+  --surface-light: #252B3B;
+  --border-color: rgba(255, 255, 255, 0.1);
+  --muted: #252B3B;
+  --muted-foreground: #9CA3AF;
+  --accent: #C41E3A;
   --level-1: #EF4444;
   --level-2: #F97316;
   --level-3: #EAB308;
-  --level-4: #84CC16;
-  --level-5: #0047FF;
+  --level-4: #22C55E;
+  --level-5: #C41E3A;
 }
 
 * {
@@ -27,7 +32,7 @@
 
 body {
   margin: 0;
-  font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--background);
@@ -35,31 +40,32 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Cabinet Grotesk', sans-serif;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
 }
 
 @layer base {
   :root {
-    --background: 0 0% 98.4%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 222 100% 50%;
+    --background: 222 33% 8%;
+    --foreground: 0 0% 100%;
+    --card: 222 28% 14%;
+    --card-foreground: 0 0% 100%;
+    --popover: 222 28% 14%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 350 73% 44%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 95.7%;
-    --muted-foreground: 0 0% 44.5%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
+    --secondary: 222 28% 18%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 222 28% 18%;
+    --muted-foreground: 217 10% 64%;
+    --accent: 350 73% 44%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 222 100% 50%;
-    --radius: 0rem;
+    --border: 222 20% 20%;
+    --input: 222 20% 20%;
+    --ring: 350 73% 44%;
+    --radius: 0.5rem;
   }
 }
 
@@ -72,49 +78,49 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-/* Swiss Brutalist button styles */
+/* CEFIN button styles */
 .btn-primary {
-  @apply rounded-none bg-[#0047FF] text-white hover:bg-black transition-colors px-8 py-4 font-medium text-sm tracking-wide;
+  @apply rounded-md bg-[#C41E3A] text-white hover:bg-[#A01830] transition-all duration-300 px-8 py-4 font-semibold text-sm tracking-wide shadow-lg hover:shadow-xl;
 }
 
 .btn-outline {
-  @apply rounded-none border border-black text-black hover:bg-black hover:text-white transition-colors px-8 py-4 text-sm tracking-wide;
+  @apply rounded-md border-2 border-white/30 text-white hover:bg-white/10 hover:border-white transition-all duration-300 px-8 py-4 text-sm tracking-wide;
 }
 
-/* Form option card */
+/* Form option card - CEFIN style */
 .option-card {
-  @apply w-full p-6 text-left border border-black/15 bg-white hover:border-[#0047FF] hover:shadow-[4px_4px_0px_#0047FF] transition-all text-lg font-medium flex items-center justify-between cursor-pointer;
+  @apply w-full p-6 text-left border border-white/10 bg-[#1A1F2E] hover:border-[#C41E3A] hover:bg-[#252B3B] transition-all duration-300 text-lg font-medium flex items-center justify-between cursor-pointer rounded-lg text-white;
 }
 
 .option-card.selected {
-  @apply border-[#0047FF] shadow-[4px_4px_0px_#0047FF] bg-[#0047FF]/5;
+  @apply border-[#C41E3A] bg-[#C41E3A]/10 shadow-lg;
 }
 
-/* Card styles */
+/* Card styles - CEFIN dark */
 .card-swiss {
-  @apply rounded-none border border-black/15 bg-white p-6 md:p-8 shadow-sm;
+  @apply rounded-lg border border-white/10 bg-[#1A1F2E] p-6 md:p-8 shadow-lg;
 }
 
-/* Input styles */
+/* Input styles - CEFIN dark */
 .input-swiss {
-  @apply rounded-none border border-black/20 focus-visible:ring-1 focus-visible:ring-black focus-visible:ring-offset-0 px-4 py-3 bg-white;
+  @apply rounded-md border border-white/20 focus-visible:ring-2 focus-visible:ring-[#C41E3A] focus-visible:ring-offset-0 px-4 py-3 bg-[#252B3B] text-white placeholder:text-gray-400;
 }
 
-/* Progress bar */
+/* Progress bar - CEFIN red */
 .progress-bar {
-  @apply transition-all duration-300 ease-out bg-[#0047FF] h-1 fixed top-0 left-0 z-50;
+  @apply transition-all duration-300 ease-out bg-[#C41E3A] h-1 fixed top-0 left-0 z-50;
 }
 
 /* Level badge colors */
 .level-1 { @apply bg-[#EF4444] text-white; }
 .level-2 { @apply bg-[#F97316] text-white; }
 .level-3 { @apply bg-[#EAB308] text-black; }
-.level-4 { @apply bg-[#84CC16] text-black; }
-.level-5 { @apply bg-[#0047FF] text-white; }
+.level-4 { @apply bg-[#22C55E] text-white; }
+.level-5 { @apply bg-[#C41E3A] text-white; }
 
-/* Table styles */
+/* Table styles - CEFIN */
 .table-swiss th {
-  @apply text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground;
+  @apply text-xs font-semibold uppercase tracking-[0.15em] text-gray-400;
 }
 
 /* PWA safe area */
@@ -132,8 +138,27 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Focus visible */
+/* Focus visible - CEFIN */
 *:focus-visible {
-  outline: 2px solid #0047FF;
+  outline: 2px solid #C41E3A;
   outline-offset: 2px;
+}
+
+/* Dark mode scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0F1219;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #252B3B;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #C41E3A;
 }
