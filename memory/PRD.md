@@ -1,83 +1,97 @@
-# Fiscal & Innovation Assessment Platform - PRD
+# CEFIN - Plataforma de Evaluación Fiscal e Innovación - PRD
 
-## Original Problem Statement
-Build a production-ready web-based user analysis and segmentation platform as a Progressive Web App (PWA) with:
-- Assessment form with 10+ questions related to fiscal studies, innovation, and accounting
-- Scoring system with 5 levels (Level 1: 10-14, Level 2: 15-18, Level 3: 19-22, Level 4: 23-26, Level 5: 27-30)
-- Result pages with VSL video and Calendly scheduler (levels 3-5 only)
-- Admin dashboard with user management, filtering, search, and CSV export
-- Mock integrations for ActiveCampaign, WhatsApp, and Calendly
+## Problema Original
+Construir una plataforma web de análisis y segmentación de usuarios como Progressive Web App (PWA) con:
+- Formulario de evaluación con 10+ preguntas relacionadas con estudios fiscales, innovación y contabilidad
+- Sistema de puntuación con 5 niveles
+- Páginas de resultados con video VSL y programador Calendly (solo niveles 3-5)
+- Panel de administración con gestión de usuarios, filtros, búsqueda y exportación CSV
+- Integraciones simuladas para ActiveCampaign, WhatsApp y Calendly
 
-## User Personas
-1. **Assessment Taker** - Business professionals evaluating their organization's capabilities
-2. **Admin User** - Staff managing and analyzing assessment submissions
+## Personas de Usuario
+1. **Usuario de Evaluación** - Profesionales de negocios evaluando las capacidades de su organización
+2. **Usuario Admin** - Personal que gestiona y analiza las evaluaciones enviadas
 
-## Core Requirements (Static)
-- PWA with manifest.json and service worker
-- Mobile-first responsive design
-- 10 multiple choice questions with 3 options each (1-3 points)
-- Level assignment based on total score
-- JWT-based admin authentication
-- User data persistence in MongoDB
+## Requisitos Principales (Estáticos)
+- PWA con manifest.json y service worker
+- Diseño responsive mobile-first
+- 10 preguntas de opción múltiple con 3 opciones cada una (1-3 puntos)
+- Asignación de nivel basada en puntuación total
+- Autenticación JWT para admin
+- Persistencia de datos en MongoDB
 
-## What's Been Implemented
+## Lo Implementado
 
-### January 26, 2026 - Initial MVP
-- Assessment flow with 10 questions (fiscal/innovation/accounting)
-- Typeform-style UX with progress bar
-- Scoring system with 5 levels
-- Result pages with VSL video embed
-- Calendly placeholder for levels 3-5
-- Admin dashboard with JWT auth
-- User table with filters/search
-- CSV export functionality
-- PWA configuration (manifest.json, service worker)
-- Mock integrations (ActiveCampaign, WhatsApp, Calendly)
+### 26 de Enero, 2026 - MVP Inicial
+- Flujo de evaluación con 10 preguntas (fiscal/innovación/contabilidad)
+- UX estilo Typeform con barra de progreso
+- Sistema de puntuación con 5 niveles
+- Páginas de resultados con video VSL
+- Placeholder de Calendly para niveles 3-5
+- Panel de admin con autenticación JWT
+- Tabla de usuarios con filtros/búsqueda
+- Funcionalidad de exportación CSV
+- Configuración PWA (manifest.json, service worker)
+- Integraciones simuladas (ActiveCampaign, WhatsApp, Calendly)
 
-### January 26, 2026 - Email Capture for Abandoned Assessments
-- ✅ User info captured BEFORE questions start (name, email, phone)
-- ✅ Users saved with "abandoned" status initially
-- ✅ Status changes to "completed" upon assessment submission
-- ✅ Admin dashboard shows Status column with color-coded badges
-- ✅ Admin can filter by status (All/Completed/Abandoned)
-- ✅ Stats display shows completed/abandoned counts separately
-- ✅ User detail page shows status and handles "No Responses" for abandoned
-- ✅ CSV export includes status column
+### 26 de Enero, 2026 - Captura de Email para Evaluaciones Abandonadas
+- ✅ Información de usuario capturada ANTES de las preguntas (nombre, email, teléfono)
+- ✅ Usuarios guardados con estado "abandonado" inicialmente
+- ✅ Estado cambia a "completado" al enviar la evaluación
+- ✅ Panel admin muestra columna de Estado con badges de colores
+- ✅ Admin puede filtrar por estado (Todos/Completados/Abandonados)
+- ✅ Estadísticas muestran conteos separados de completados/abandonados
+- ✅ Detalle de usuario muestra estado y maneja "Sin Respuestas" para abandonados
+- ✅ Exportación CSV incluye columna de estado
 
-### Database Schema (MongoDB)
+### 26 de Enero, 2026 - Diseño CEFIN
+- ✅ Paleta de colores CEFIN implementada:
+  - Fondo: Azul marino oscuro (#0F1219, #1A1F2E)
+  - Acento: Rojo guindo (#C41E3A)
+  - Texto: Blanco y grises
+- ✅ Tipografía:
+  - Títulos: Montserrat (bold)
+  - Cuerpo: Open Sans
+- ✅ Toda la interfaz traducida al español
+- ✅ Íconos PWA actualizados con color CEFIN
+- ✅ Diseño de tarjetas oscuro con bordes sutiles
+- ✅ Estados de selección con color rojo CEFIN
+
+### Esquema de Base de Datos (MongoDB)
 - `users`: id, name, email, phone, score (nullable), level (nullable), status ("abandoned"/"completed"), created_at
 - `responses`: id, user_id, question, answer, score
-- `admins`: id, email, password (hashed), name, created_at
+- `admins`: id, email, password (hasheado), name, created_at
 
-## Prioritized Backlog
+## Backlog Priorizado
 
-### P0 - Critical (Complete)
-- [x] Assessment flow end-to-end
-- [x] Scoring system and level assignment
-- [x] Admin authentication
-- [x] User management
-- [x] Email capture for lead recovery
+### P0 - Crítico (Completado)
+- [x] Flujo de evaluación completo
+- [x] Sistema de puntuación y asignación de niveles
+- [x] Autenticación de admin
+- [x] Gestión de usuarios
+- [x] Captura de email para recuperación de leads
+- [x] Diseño de marca CEFIN
 
-### P1 - High Priority (Next)
-- [ ] Real ActiveCampaign integration
-- [ ] Real WhatsApp API integration
-- [ ] Real Calendly embed integration
-- [ ] Email notifications for completed assessments
+### P1 - Alta Prioridad (Siguiente)
+- [ ] Integración real de ActiveCampaign
+- [ ] Integración real de API WhatsApp
+- [ ] Integración real de embed Calendly
+- [ ] Notificaciones por email para evaluaciones completadas
 
-### P2 - Medium Priority
-- [ ] Automated follow-up emails for abandoned assessments
-- [ ] Assessment analytics dashboard
-- [ ] A/B testing for questions
-- [ ] Multi-language support
+### P2 - Prioridad Media
+- [ ] Emails de seguimiento automatizados para evaluaciones abandonadas
+- [ ] Dashboard de analíticas de evaluaciones
+- [ ] Testing A/B para preguntas
+- [ ] Soporte multiidioma
 
 ### P3 - Nice to Have
-- [ ] PDF export of results
-- [ ] Team/organization assessments
-- [ ] Historical comparison reports
+- [ ] Exportación PDF de resultados
+- [ ] Evaluaciones de equipo/organización
+- [ ] Reportes de comparación histórica
 
-## Next Tasks
-1. Integrate real ActiveCampaign API when key provided
-2. Integrate WhatsApp Business API for admin notifications
-3. Add real Calendly embed URL
-4. Set up automated abandoned cart email sequence
-5. Add assessment retake tracking
+## Siguientes Tareas
+1. Integrar API real de ActiveCampaign cuando se proporcione la clave
+2. Integrar API de WhatsApp Business para notificaciones al admin
+3. Agregar URL real de embed Calendly
+4. Configurar secuencia automatizada de emails para abandonados
+5. Agregar seguimiento de repetición de evaluaciones
