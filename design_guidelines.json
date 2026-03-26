@@ -1,0 +1,82 @@
+{
+  "theme": "LIGHT",
+  "archetype": "Archetype 4 (Swiss & High-Contrast)",
+  "typography": {
+    "headings": "Cabinet Grotesk",
+    "body": "IBM Plex Sans",
+    "hierarchy": {
+      "h1": "text-4xl sm:text-5xl lg:text-6xl tracking-tighter font-bold leading-none",
+      "h2": "text-2xl sm:text-3xl lg:text-4xl tracking-tight font-medium",
+      "h3": "text-xl sm:text-2xl tracking-tight font-medium",
+      "body": "text-base leading-relaxed",
+      "labels": "text-xs font-semibold uppercase tracking-[0.2em]"
+    }
+  },
+  "colors": {
+    "background": "#FBFBFB",
+    "foreground": "#0A0A0A",
+    "primary": "#0047FF",
+    "primary_foreground": "#FFFFFF",
+    "surface": "#FFFFFF",
+    "border": "rgba(10, 10, 10, 0.15)",
+    "muted": "#F4F4F5",
+    "muted_foreground": "#71717A",
+    "level_colors": {
+      "level_1": "#EF4444",
+      "level_2": "#F97316",
+      "level_3": "#EAB308",
+      "level_4": "#84CC16",
+      "level_5": "#0047FF"
+    }
+  },
+  "spacing": {
+    "container": "p-6 md:p-12 lg:p-24",
+    "gap": "gap-8 md:gap-12"
+  },
+  "layout": {
+    "assessment_form": "min-h-[100dvh] flex flex-col justify-center items-center max-w-4xl mx-auto px-6 py-24 relative",
+    "dashboard": "grid grid-cols-1 lg:grid-cols-[280px_1fr] min-h-screen bg-[#F4F4F5]/50"
+  },
+  "components": {
+    "buttons": {
+      "primary": "rounded-none bg-[#0047FF] text-white hover:bg-black transition-colors px-8 py-4 font-medium text-sm tracking-wide",
+      "outline": "rounded-none border border-black text-black hover:bg-black hover:text-white transition-colors px-8 py-4 text-sm tracking-wide"
+    },
+    "form_options": "w-full p-6 text-left border border-black/15 bg-white hover:border-[#0047FF] hover:shadow-[4px_4px_0px_#0047FF] transition-all text-xl font-medium flex items-center justify-between group",
+    "cards": "rounded-none border border-black/15 bg-white p-6 md:p-8 shadow-sm",
+    "inputs": "rounded-none border border-black/20 focus-visible:ring-1 focus-visible:ring-black focus-visible:ring-offset-0 px-4 py-3 bg-white"
+  },
+  "assets": {
+    "icons_library": "@phosphor-icons/react",
+    "hero_background": "https://images.unsplash.com/photo-1761555488129-40161d6ea01e?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1NzZ8MHwxfHNlYXJjaHwyfHxtb2Rlcm4lMjBjb3Jwb3JhdGUlMjBhcmNoaXRlY3R1cmUlMjBhYnN0cmFjdHxlbnwwfHx8fDE3NzQ1NDMxMzh8MA&ixlib=rb-4.1.0&q=85",
+    "dashboard_background": "https://images.pexels.com/photos/2468056/pexels-photo-2468056.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+  },
+  "motion": {
+    "page_transition": "framer-motion initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, ease: 'easeOut' }}",
+    "progress_bar": "transition-all duration-300 ease-out bg-[#0047FF] h-1 fixed top-0 left-0 z-50",
+    "hover_state": "transition-transform duration-200 ease-in-out hover:-translate-y-1"
+  },
+  "pwa": {
+    "manifest": {
+      "name": "Fiscal & Innovation Assessment",
+      "short_name": "FIA App",
+      "theme_color": "#FBFBFB",
+      "background_color": "#0A0A0A",
+      "display": "standalone"
+    }
+  },
+  "testing": {
+    "data_testid_rules": "All interactive elements MUST have data-testid attributes (e.g., data-testid='option-a', data-testid='submit-assessment', data-testid='admin-login-btn', data-testid='export-csv-btn', data-testid='calendly-embed')."
+  },
+  "instructions_to_main_agent": [
+    "1. PWA Setup: Create manifest.json and register a basic service worker in the public directory.",
+    "2. Typography: Import Cabinet Grotesk for headings and IBM Plex Sans for body text. Do not use Inter for headings.",
+    "3. Form Architecture: Use Framer Motion for sliding between the 10+ questions. 1 question per screen (Typeform style). Top progress bar fixed.",
+    "4. Scoring Logic: Assign values to A/B/C/D options. Calculate total score at the end and assign Level 1 (10-14) to Level 5 (27-30).",
+    "5. Results Page: Use the hero_background asset. Display dynamic result based on level. Show MOCKED Calendly embed and MOCKED VSL video iframe for Levels 3-5.",
+    "6. Mock Integrations: Trigger Sonner toasts for 'WhatsApp notification sent' and 'ActiveCampaign tag added' upon form completion.",
+    "7. Admin Dashboard: Build a minimalist layout using Shadcn. Include 'Level' dropdown filter, text search (name/email), and a 'Download CSV' button (using Blob API).",
+    "8. Components: Use Shadcn Table, Select, Input, Button, but strip out rounded corners (rounded-none) and soft shadows to match the Swiss Brutalist aesthetic.",
+    "9. Icons: Install and use @phosphor-icons/react."
+  ]
+}
