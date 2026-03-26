@@ -16,7 +16,9 @@ export default function Assessment() {
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [capturingInfo, setCapturingInfo] = useState(false);
   const [userInfo, setUserInfo] = useState({ name: "", email: "", phone: "" });
+  const [userId, setUserId] = useState(null);
   const [answers, setAnswers] = useState({});
   const [errors, setErrors] = useState({});
 
@@ -49,10 +51,29 @@ export default function Assessment() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleNext = () => {
-    if (step === 1) {
-      if (!validateUserInfo()) return;
+  const captureUserInfo = async () => {
+    if (!validateUserInfo()) return;
+    
+    setCapturingInfo(true);
+    try {
+      const response = await axios.post(`${API}/assessment/capture`, {
+        name: userInfo.name,
+        email: userInfo.email,
+        phone: userInfo.phone,
+      });
+      
+      setUserId(response.data.user_id);
+      toast.success("Your information has been saved");
+      setStep(2); // Move to first question
+    } catch (error) {
+      console.error("Failed to capture user info:", error);
+      toast.error("Failed to save information. Please try again.");
+    } finally {
+      setCapturingInfo(false);
     }
+  };
+
+  const handleNext = () => {
     if (step >= 2) {
       const currentQuestion = questions[step - 2];
       if (!answers[currentQuestion.id]) {
@@ -64,7 +85,12 @@ export default function Assessment() {
   };
 
   const handleBack = () => {
-    setStep((prev) => Math.max(0, prev - 1));
+    if (step === 2) {
+      // Going back from first question to user info - don't reset userId
+      setStep(1);
+    } else {
+      setStep((prev) => Math.max(0, prev - 1));
+    }
   };
 
   const handleSelectOption = (questionId, option) => {
@@ -81,6 +107,12 @@ export default function Assessment() {
       return;
     }
 
+    if (!userId) {
+      toast.error("Session expired. Please start again.");
+      setStep(0);
+      return;
+    }
+
     setSubmitting(true);
     try {
       const responses = questions.map((q) => ({
@@ -90,7 +122,7 @@ export default function Assessment() {
       }));
 
       const payload = {
-        user: userInfo,
+        user_id: userId,
         responses,
       };
 
@@ -107,12 +139,12 @@ export default function Assessment() {
         state: {
           score: response.data.score,
           level: response.data.level,
-          name: userInfo.name,
+          name: response.data.name,
         },
       });
     } catch (error) {
       console.error("Submission failed:", error);
-      toast.error("Failed to submit assessment");
+      toast.error(error.response?.data?.detail || "Failed to submit assessment");
     } finally {
       setSubmitting(false);
     }
@@ -240,11 +272,21 @@ export default function Assessment() {
                 </Button>
                 <Button
                   data-testid="continue-to-questions-btn"
-                  onClick={handleNext}
+                  onClick={captureUserInfo}
+                  disabled={capturingInfo}
                   className="btn-primary flex-1"
                 >
-                  Continue
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  {capturingInfo ? (
+                    <>
+                      <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      Continue
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </>
+                  )}
                 </Button>
               </div>
             </div>

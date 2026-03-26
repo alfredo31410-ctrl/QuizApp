@@ -8,7 +8,8 @@ import {
   SignOut, 
   Users,
   ChartBar,
-  Funnel
+  Funnel,
+  Warning
 } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,6 +41,11 @@ const levelColors = {
   5: "level-5",
 };
 
+const statusColors = {
+  completed: "bg-green-100 text-green-800",
+  abandoned: "bg-amber-100 text-amber-800",
+};
+
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
@@ -47,6 +53,7 @@ export default function AdminDashboard() {
   const [adminInfo, setAdminInfo] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [levelFilter, setLevelFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   useEffect(() => {
     const token = localStorage.getItem("admin_token");
@@ -60,7 +67,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetchUsers();
-  }, [levelFilter]);
+  }, [levelFilter, statusFilter]);
 
   const getAuthHeaders = () => ({
     headers: { Authorization: `Bearer ${localStorage.getItem("admin_token")}` },
@@ -85,6 +92,9 @@ export default function AdminDashboard() {
       if (levelFilter !== "all") {
         params.level = parseInt(levelFilter, 10);
       }
+      if (statusFilter !== "all") {
+        params.status_filter = statusFilter;
+      }
       const response = await axios.get(`${API}/admin/users`, {
         ...getAuthHeaders(),
         params,
@@ -107,6 +117,9 @@ export default function AdminDashboard() {
       const params = {};
       if (levelFilter !== "all") {
         params.level = parseInt(levelFilter, 10);
+      }
+      if (statusFilter !== "all") {
+        params.status_filter = statusFilter;
       }
       const response = await axios.get(`${API}/admin/export`, {
         ...getAuthHeaders(),
@@ -146,6 +159,8 @@ export default function AdminDashboard() {
 
   const stats = {
     total: users.length,
+    completed: users.filter((u) => u.status === "completed").length,
+    abandoned: users.filter((u) => u.status === "abandoned").length,
     level1: users.filter((u) => u.level === 1).length,
     level2: users.filter((u) => u.level === 2).length,
     level3: users.filter((u) => u.level === 3).length,
@@ -206,15 +221,23 @@ export default function AdminDashboard() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8"
+          className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-8"
         >
           <div className="card-swiss" data-testid="stat-total">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Total Users</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Total</p>
             <p className="text-3xl font-bold mt-1">{stats.total}</p>
+          </div>
+          <div className="card-swiss" data-testid="stat-completed">
+            <p className="text-xs font-semibold uppercase tracking-wider text-green-600">Completed</p>
+            <p className="text-3xl font-bold mt-1">{stats.completed}</p>
+          </div>
+          <div className="card-swiss" data-testid="stat-abandoned">
+            <p className="text-xs font-semibold uppercase tracking-wider text-amber-600">Abandoned</p>
+            <p className="text-3xl font-bold mt-1">{stats.abandoned}</p>
           </div>
           {[1, 2, 3, 4, 5].map((level) => (
             <div key={level} className="card-swiss" data-testid={`stat-level-${level}`}>
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Level {level}</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">L{level}</p>
               <p className="text-3xl font-bold mt-1">{stats[`level${level}`]}</p>
             </div>
           ))}
@@ -238,9 +261,19 @@ export default function AdminDashboard() {
                 className="input-swiss pl-10"
               />
             </div>
-            <div className="flex gap-4">
+            <div className="flex flex-wrap gap-4">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-36 input-swiss" data-testid="status-filter">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="abandoned">Abandoned</SelectItem>
+                </SelectContent>
+              </Select>
               <Select value={levelFilter} onValueChange={setLevelFilter}>
-                <SelectTrigger className="w-40 input-swiss" data-testid="level-filter">
+                <SelectTrigger className="w-36 input-swiss" data-testid="level-filter">
                   <Funnel className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Filter by level" />
                 </SelectTrigger>
@@ -279,6 +312,7 @@ export default function AdminDashboard() {
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Phone</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead>Score</TableHead>
                   <TableHead>Level</TableHead>
                   <TableHead>Date</TableHead>
@@ -288,13 +322,13 @@ export default function AdminDashboard() {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-12">
+                    <TableCell colSpan={8} className="text-center py-12">
                       <div className="w-6 h-6 border-2 border-[#0047FF] border-t-transparent rounded-full animate-spin mx-auto" />
                     </TableCell>
                   </TableRow>
                 ) : filteredUsers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                    <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
                       No users found
                     </TableCell>
                   </TableRow>
@@ -304,11 +338,21 @@ export default function AdminDashboard() {
                       <TableCell className="font-medium">{user.name}</TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>{user.phone}</TableCell>
-                      <TableCell>{user.score}</TableCell>
                       <TableCell>
-                        <span className={`px-2 py-1 text-xs font-semibold ${levelColors[user.level]}`}>
-                          Level {user.level}
+                        <span className={`px-2 py-1 text-xs font-semibold rounded ${statusColors[user.status] || 'bg-gray-100 text-gray-800'}`}>
+                          {user.status === "abandoned" && <Warning className="inline h-3 w-3 mr-1" />}
+                          {user.status}
                         </span>
+                      </TableCell>
+                      <TableCell>{user.score ?? "-"}</TableCell>
+                      <TableCell>
+                        {user.level ? (
+                          <span className={`px-2 py-1 text-xs font-semibold ${levelColors[user.level]}`}>
+                            Level {user.level}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         {new Date(user.created_at).toLocaleDateString()}

@@ -138,19 +138,49 @@ class AssessmentAPITester:
         """Test admin profile endpoint"""
         return self.run_test("Admin Profile", "GET", "admin/me", 200)
 
-    def test_assessment_submission(self):
-        """Test assessment submission"""
-        # First get questions to create valid responses
-        questions_success, questions = self.test_get_questions()
-        if not questions_success:
-            return False, {}
-        
-        # Create test user data
+    def test_user_capture(self):
+        """Test user info capture (new email capture functionality)"""
         user_data = {
             "name": f"Test User {datetime.now().strftime('%H%M%S')}",
             "email": f"testuser_{datetime.now().strftime('%H%M%S')}@test.com",
             "phone": "+1234567890"
         }
+        
+        success, response = self.run_test(
+            "User Info Capture", 
+            "POST", 
+            "assessment/capture", 
+            200, 
+            user_data
+        )
+        
+        if success:
+            expected_fields = ['success', 'user_id', 'message']
+            missing_fields = [field for field in expected_fields if field not in response]
+            if missing_fields:
+                self.log_test("User Capture Response Validation", False, f"Missing fields: {missing_fields}")
+            else:
+                print(f"   ✓ User captured with ID: {response.get('user_id')}")
+                print(f"   ✓ Message: {response.get('message')}")
+        
+        return success, response
+
+    def test_assessment_submission_with_capture(self):
+        """Test full assessment flow: capture -> submit"""
+        # First capture user info
+        capture_success, capture_response = self.test_user_capture()
+        if not capture_success:
+            return False, {}
+        
+        user_id = capture_response.get('user_id')
+        if not user_id:
+            self.log_test("Assessment Flow", False, "No user_id from capture")
+            return False, {}
+        
+        # Get questions to create valid responses
+        questions_success, questions = self.test_get_questions()
+        if not questions_success:
+            return False, {}
         
         # Create responses for all questions
         responses = []
@@ -162,7 +192,7 @@ class AssessmentAPITester:
             })
         
         assessment_data = {
-            "user": user_data,
+            "user_id": user_id,
             "responses": responses
         }
         
@@ -180,7 +210,7 @@ class AssessmentAPITester:
             if missing_fields:
                 self.log_test("Assessment Response Validation", False, f"Missing fields: {missing_fields}")
             else:
-                print(f"   ✓ User created with ID: {response.get('user_id')}")
+                print(f"   ✓ Assessment completed for user ID: {response.get('user_id')}")
                 print(f"   ✓ Score: {response.get('score')}, Level: {response.get('level')}")
                 print(f"   ✓ Mock integrations: {response.get('integrations', {}).keys()}")
         
@@ -194,6 +224,12 @@ class AssessmentAPITester:
         """Test get users with level filter"""
         return self.run_test("Get Users (Level 1)", "GET", "admin/users?level=1", 200)
 
+    def test_get_users_with_status_filter(self):
+        """Test get users with status filter"""
+        success_completed, _ = self.run_test("Get Users (Completed)", "GET", "admin/users?status_filter=completed", 200)
+        success_abandoned, _ = self.run_test("Get Users (Abandoned)", "GET", "admin/users?status_filter=abandoned", 200)
+        return success_completed and success_abandoned
+
     def test_get_users_with_search(self):
         """Test get users with search"""
         return self.run_test("Get Users (Search)", "GET", "admin/users?search=test", 200)
@@ -203,7 +239,24 @@ class AssessmentAPITester:
         success, response = self.run_test("Export CSV", "GET", "admin/export", 200)
         if success and 'csv' in response and 'count' in response:
             print(f"   ✓ CSV export contains {response.get('count')} users")
+            # Check if CSV includes status column
+            csv_content = response.get('csv', '')
+            if 'Status' in csv_content:
+                print(f"   ✓ CSV includes Status column")
+            else:
+                self.log_test("CSV Status Column", False, "Status column missing from CSV")
         return success, response
+
+    def test_export_csv_with_status_filter(self):
+        """Test CSV export with status filter"""
+        success_completed, response_completed = self.run_test("Export CSV (Completed)", "GET", "admin/export?status_filter=completed", 200)
+        success_abandoned, response_abandoned = self.run_test("Export CSV (Abandoned)", "GET", "admin/export?status_filter=abandoned", 200)
+        
+        if success_completed and success_abandoned:
+            print(f"   ✓ Completed users export: {response_completed.get('count', 0)} users")
+            print(f"   ✓ Abandoned users export: {response_abandoned.get('count', 0)} users")
+        
+        return success_completed and success_abandoned
 
     def test_user_detail(self, user_id):
         """Test user detail endpoint"""
@@ -257,21 +310,26 @@ def main():
     # Test score calculation logic
     tester.test_score_calculation()
     
+    # Test new email capture functionality
+    tester.test_user_capture()
+    
     # Test admin functionality
     admin_success, admin_data = tester.test_admin_registration()
     if admin_success:
         tester.test_admin_login(admin_data)
         tester.test_admin_profile()
     
-    # Test assessment submission
-    assessment_success, assessment_response = tester.test_assessment_submission()
+    # Test full assessment flow (capture -> submit)
+    assessment_success, assessment_response = tester.test_assessment_submission_with_capture()
     
     # Test admin endpoints (if admin token available)
     if tester.admin_token:
         users_success, users_response = tester.test_get_users()
         tester.test_get_users_with_filter()
+        tester.test_get_users_with_status_filter()  # New status filter test
         tester.test_get_users_with_search()
         tester.test_export_csv()
+        tester.test_export_csv_with_status_filter()  # New status filter CSV test
         
         # Test user detail if we have a user ID from assessment
         if assessment_success and 'user_id' in assessment_response:

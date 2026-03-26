@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, User, Envelope, Phone, Calendar, Trophy } from "@phosphor-icons/react";
+import { ArrowLeft, User, Envelope, Phone, Calendar, Trophy, Warning } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -22,6 +22,11 @@ const levelColors = {
   3: "level-3",
   4: "level-4",
   5: "level-5",
+};
+
+const statusColors = {
+  completed: "bg-green-100 text-green-800",
+  abandoned: "bg-amber-100 text-amber-800",
 };
 
 export default function UserDetail() {
@@ -95,9 +100,15 @@ export default function UserDetail() {
           <div className="card-swiss mb-8">
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-6" data-testid="user-name">
-                  {user.name}
-                </h1>
+                <div className="flex items-center gap-3 mb-4">
+                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight" data-testid="user-name">
+                    {user.name}
+                  </h1>
+                  <span className={`px-2 py-1 text-xs font-semibold rounded ${statusColors[user.status] || 'bg-gray-100 text-gray-800'}`} data-testid="user-status">
+                    {user.status === "abandoned" && <Warning className="inline h-3 w-3 mr-1" />}
+                    {user.status}
+                  </span>
+                </div>
                 
                 <div className="space-y-3">
                   <div className="flex items-center gap-3 text-muted-foreground">
@@ -116,43 +127,62 @@ export default function UserDetail() {
               </div>
 
               <div className="flex flex-col items-center gap-4 p-6 bg-[#F4F4F5]">
-                <div className="text-center">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Score</p>
-                  <p className="text-4xl font-bold" data-testid="user-score">{user.score}</p>
-                </div>
-                <span className={`px-4 py-2 text-sm font-semibold ${levelColors[user.level]}`} data-testid="user-level">
-                  Level {user.level}
-                </span>
+                {user.status === "completed" ? (
+                  <>
+                    <div className="text-center">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Score</p>
+                      <p className="text-4xl font-bold" data-testid="user-score">{user.score}</p>
+                    </div>
+                    <span className={`px-4 py-2 text-sm font-semibold ${levelColors[user.level]}`} data-testid="user-level">
+                      Level {user.level}
+                    </span>
+                  </>
+                ) : (
+                  <div className="text-center">
+                    <Warning className="h-8 w-8 text-amber-500 mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">Assessment not completed</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
           {/* Responses Table */}
-          <div className="card-swiss">
-            <h2 className="text-xl font-bold mb-6">Assessment Responses</h2>
-            <div className="overflow-x-auto">
-              <Table className="table-swiss">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[50%]">Question</TableHead>
-                    <TableHead>Answer</TableHead>
-                    <TableHead>Score</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {responses.map((response, index) => (
-                    <TableRow key={response.id} data-testid={`response-row-${index}`}>
-                      <TableCell className="font-medium">{response.question}</TableCell>
-                      <TableCell>{response.answer}</TableCell>
-                      <TableCell>
-                        <span className="font-semibold">{response.score}</span>
-                      </TableCell>
+          {responses.length > 0 ? (
+            <div className="card-swiss">
+              <h2 className="text-xl font-bold mb-6">Assessment Responses</h2>
+              <div className="overflow-x-auto">
+                <Table className="table-swiss">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[50%]">Question</TableHead>
+                      <TableHead>Answer</TableHead>
+                      <TableHead>Score</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {responses.map((response, index) => (
+                      <TableRow key={response.id} data-testid={`response-row-${index}`}>
+                        <TableCell className="font-medium">{response.question}</TableCell>
+                        <TableCell>{response.answer}</TableCell>
+                        <TableCell>
+                          <span className="font-semibold">{response.score}</span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="card-swiss text-center py-12">
+              <Warning className="h-12 w-12 text-amber-500 mx-auto mb-4" />
+              <h2 className="text-xl font-bold mb-2">No Responses Yet</h2>
+              <p className="text-muted-foreground">
+                This user abandoned the assessment before answering any questions.
+              </p>
+            </div>
+          )}
         </motion.div>
       </div>
     </div>

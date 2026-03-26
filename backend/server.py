@@ -44,8 +44,13 @@ class ResponseItem(BaseModel):
     score: int
 
 class AssessmentSubmit(BaseModel):
-    user: UserCreate
+    user_id: str
     responses: List[ResponseItem]
+
+class UserCapture(BaseModel):
+    name: str
+    email: EmailStr
+    phone: str
 
 class User(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -53,8 +58,9 @@ class User(BaseModel):
     name: str
     email: str
     phone: str
-    score: int
-    level: int
+    score: Optional[int] = None
+    level: Optional[int] = None
+    user_status: str = "abandoned"  # "abandoned" or "completed"
     created_at: str
 
 class UserResponse(BaseModel):
@@ -139,33 +145,64 @@ async def mock_whatsapp_notification(user_data: dict, score: int, level: int):
 async def root():
     return {"message": "Fiscal & Innovation Assessment API"}
 
-# Assessment submission
+# Capture user info (before questions - saves as abandoned)
+@api_router.post("/assessment/capture")
+async def capture_user_info(data: UserCapture):
+    # Check if user with this email already exists and is abandoned
+    existing = await db.users.find_one({"email": data.email, "status": "abandoned"}, {"_id": 0})
+    
+    if existing:
+        # Update existing abandoned record
+        await db.users.update_one(
+            {"email": data.email, "status": "abandoned"},
+            {"$set": {"name": data.name, "phone": data.phone, "created_at": datetime.now(timezone.utc).isoformat()}}
+        )
+        return {"success": True, "user_id": existing["id"], "message": "User info updated"}
+    
+    # Create new user record with abandoned status
+    user_id = str(uuid.uuid4())
+    user_doc = {
+        "id": user_id,
+        "name": data.name,
+        "email": data.email,
+        "phone": data.phone,
+        "score": None,
+        "level": None,
+        "status": "abandoned",
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.users.insert_one(user_doc)
+    
+    return {"success": True, "user_id": user_id, "message": "User info captured"}
+
+# Assessment submission (completes the assessment)
 @api_router.post("/assessment/submit")
 async def submit_assessment(data: AssessmentSubmit):
+    # Get user record
+    user = await db.users.find_one({"id": data.user_id}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found. Please start assessment again.")
+    
     # Calculate total score
     total_score = sum(r.score for r in data.responses)
     level = calculate_level(total_score)
     
-    # Create user record
-    user_id = str(uuid.uuid4())
-    user_doc = {
-        "id": user_id,
-        "name": data.user.name,
-        "email": data.user.email,
-        "phone": data.user.phone,
-        "score": total_score,
-        "level": level,
-        "created_at": datetime.now(timezone.utc).isoformat()
-    }
-    
-    # Store user
-    await db.users.insert_one(user_doc)
+    # Update user with score, level, and completed status
+    await db.users.update_one(
+        {"id": data.user_id},
+        {"$set": {
+            "score": total_score,
+            "level": level,
+            "status": "completed"
+        }}
+    )
     
     # Store responses
     for response in data.responses:
         response_doc = {
             "id": str(uuid.uuid4()),
-            "user_id": user_id,
+            "user_id": data.user_id,
             "question": response.question,
             "answer": response.answer,
             "score": response.score
@@ -173,14 +210,15 @@ async def submit_assessment(data: AssessmentSubmit):
         await db.responses.insert_one(response_doc)
     
     # Mock integrations
-    ac_result = await mock_active_campaign({"name": data.user.name, "email": data.user.email, "phone": data.user.phone}, level)
-    wa_result = await mock_whatsapp_notification({"name": data.user.name}, total_score, level)
+    ac_result = await mock_active_campaign({"name": user["name"], "email": user["email"], "phone": user["phone"]}, level)
+    wa_result = await mock_whatsapp_notification({"name": user["name"]}, total_score, level)
     
     return {
         "success": True,
-        "user_id": user_id,
+        "user_id": data.user_id,
         "score": total_score,
         "level": level,
+        "name": user["name"],
         "integrations": {
             "active_campaign": ac_result,
             "whatsapp": wa_result
@@ -225,12 +263,15 @@ async def get_admin_profile(admin = Depends(get_current_admin)):
 @api_router.get("/admin/users")
 async def get_users(
     level: Optional[int] = None,
+    status_filter: Optional[str] = None,
     search: Optional[str] = None,
     admin = Depends(get_current_admin)
 ):
     query = {}
     if level is not None:
         query["level"] = level
+    if status_filter is not None:
+        query["status"] = status_filter
     
     users = await db.users.find(query, {"_id": 0}).sort("created_at", -1).to_list(1000)
     
@@ -254,18 +295,24 @@ async def get_user_detail(user_id: str, admin = Depends(get_current_admin)):
 @api_router.get("/admin/export")
 async def export_users_csv(
     level: Optional[int] = None,
+    status_filter: Optional[str] = None,
     admin = Depends(get_current_admin)
 ):
     query = {}
     if level is not None:
         query["level"] = level
+    if status_filter is not None:
+        query["status"] = status_filter
     
     users = await db.users.find(query, {"_id": 0}).sort("created_at", -1).to_list(10000)
     
     # Generate CSV content
-    csv_lines = ["Name,Email,Phone,Score,Level,Date"]
+    csv_lines = ["Name,Email,Phone,Score,Level,Status,Date"]
     for user in users:
-        csv_lines.append(f"{user['name']},{user['email']},{user['phone']},{user['score']},{user['level']},{user['created_at']}")
+        score = user.get('score') if user.get('score') is not None else 'N/A'
+        level_val = user.get('level') if user.get('level') is not None else 'N/A'
+        status_val = user.get('status', 'unknown')
+        csv_lines.append(f"{user['name']},{user['email']},{user['phone']},{score},{level_val},{status_val},{user['created_at']}")
     
     return {"csv": "\n".join(csv_lines), "count": len(users)}
 
