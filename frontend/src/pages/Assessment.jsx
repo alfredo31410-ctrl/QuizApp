@@ -114,9 +114,18 @@ export default function Assessment() {
 
     setSubmitting(true);
     try {
+      const unansweredQuestion = questions.find((q) => !answers[q.id]?.id);
+      if (unansweredQuestion) {
+        const unansweredIndex = questions.findIndex((q) => q.id === unansweredQuestion.id);
+        setStep(unansweredIndex + 2);
+        toast.error("Please answer all questions before submitting");
+        setSubmitting(false);
+        return;
+      }
+
       const responses = questions.map((q) => ({
         question_id: q.id,
-        option_id: answers[q.id]?.id || "",
+        option_id: answers[q.id].id,
       }));
 
       const payload = {
