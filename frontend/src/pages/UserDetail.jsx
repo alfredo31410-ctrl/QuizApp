@@ -11,10 +11,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { API } from "@/lib/api";
 import { toast } from "sonner";
 import axios from "axios";
-
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const levelColors = {
   1: "level-1",

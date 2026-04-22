@@ -1,10 +1,11 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, status
+from fastapi import FastAPI, APIRouter, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
+import json
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict, EmailStr
 from typing import List, Optional
@@ -15,6 +16,10 @@ import bcrypt
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
+ASSESSMENT_CONFIG_PATH = ROOT_DIR / "assessment_config.json"
+
+with ASSESSMENT_CONFIG_PATH.open("r", encoding="utf-8") as config_file:
+    ASSESSMENT_CONFIG = json.load(config_file)
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
@@ -39,9 +44,8 @@ class UserCreate(BaseModel):
     phone: str
 
 class ResponseItem(BaseModel):
-    question: str
-    answer: str
-    score: int
+    question_id: int
+    option_id: str
 
 class AssessmentSubmit(BaseModel):
     user_id: str
@@ -87,17 +91,26 @@ class AdminToken(BaseModel):
 # ============ HELPER FUNCTIONS ============
 
 def calculate_level(score: int) -> int:
-    """Calculate level based on score thresholds"""
-    if score <= 14:
-        return 1
-    elif score <= 18:
-        return 2
-    elif score <= 22:
-        return 3
-    elif score <= 26:
-        return 4
-    else:
-        return 5
+    """Calculate level based on configured score thresholds."""
+    for level in ASSESSMENT_CONFIG["levels"]:
+        if level["min_score"] <= score <= level["max_score"]:
+            return level["id"]
+    raise HTTPException(status_code=400, detail="Score is outside configured ranges")
+
+def get_question_map() -> dict:
+    return {
+        question["id"]: {
+            **question,
+            "options_by_id": {option["id"]: option for option in question["options"]},
+        }
+        for question in ASSESSMENT_CONFIG["questions"]
+    }
+
+def get_option_score(option_id: str) -> int:
+    score = ASSESSMENT_CONFIG["score_system"].get(option_id.upper())
+    if score is None:
+        raise HTTPException(status_code=400, detail=f"Invalid option id: {option_id}")
+    return score
 
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
@@ -109,6 +122,10 @@ def create_token(email: str) -> str:
     expiration = datetime.now(timezone.utc) + timedelta(hours=JWT_EXPIRATION_HOURS)
     payload = {"sub": email, "exp": expiration}
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+def ensure_secure_settings() -> None:
+    if JWT_SECRET == 'your-secret-key-change-in-production':
+        logger.warning("JWT_SECRET is using the default insecure value. Change it before production deployment.")
 
 async def get_current_admin(credentials: HTTPAuthorizationCredentials = Depends(security)):
     try:
@@ -183,9 +200,40 @@ async def submit_assessment(data: AssessmentSubmit):
     user = await db.users.find_one({"id": data.user_id}, {"_id": 0})
     if not user:
         raise HTTPException(status_code=404, detail="User not found. Please start assessment again.")
-    
-    # Calculate total score
-    total_score = sum(r.score for r in data.responses)
+
+    question_map = get_question_map()
+    expected_questions = set(question_map.keys())
+    received_questions = {response.question_id for response in data.responses}
+
+    if received_questions != expected_questions:
+        raise HTTPException(status_code=400, detail="Assessment responses are incomplete or invalid.")
+
+    stored_responses = []
+    total_score = 0
+    for response in data.responses:
+        question = question_map.get(response.question_id)
+        if question is None:
+            raise HTTPException(status_code=400, detail=f"Invalid question id: {response.question_id}")
+
+        option = question["options_by_id"].get(response.option_id.upper())
+        if option is None:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid option id '{response.option_id}' for question {response.question_id}"
+            )
+
+        option_score = get_option_score(response.option_id)
+        total_score += option_score
+        stored_responses.append({
+            "id": str(uuid.uuid4()),
+            "user_id": data.user_id,
+            "question_id": question["id"],
+            "question": question["question"],
+            "answer": option["label"],
+            "option_id": option["id"],
+            "score": option_score
+        })
+
     level = calculate_level(total_score)
     
     # Update user with score, level, and completed status
@@ -199,14 +247,7 @@ async def submit_assessment(data: AssessmentSubmit):
     )
     
     # Store responses
-    for response in data.responses:
-        response_doc = {
-            "id": str(uuid.uuid4()),
-            "user_id": data.user_id,
-            "question": response.question,
-            "answer": response.answer,
-            "score": response.score
-        }
+    for response_doc in stored_responses:
         await db.responses.insert_one(response_doc)
     
     # Mock integrations
@@ -225,34 +266,15 @@ async def submit_assessment(data: AssessmentSubmit):
         }
     }
 
-# Admin authentication
-@api_router.post("/admin/register", response_model=AdminToken)
-async def register_admin(data: AdminCreate):
-    # Check if admin exists
-    existing = await db.admins.find_one({"email": data.email})
-    if existing:
-        raise HTTPException(status_code=400, detail="Admin already exists")
-    
-    # Create admin
-    admin_doc = {
-        "id": str(uuid.uuid4()),
-        "email": data.email,
-        "password": hash_password(data.password),
-        "name": data.name,
-        "created_at": datetime.now(timezone.utc).isoformat()
-    }
-    await db.admins.insert_one(admin_doc)
-    
-    token = create_token(data.email)
-    return AdminToken(access_token=token)
-
 @api_router.post("/admin/login", response_model=AdminToken)
 async def login_admin(data: AdminLogin):
-    admin = await db.admins.find_one({"email": data.email}, {"_id": 0})
-    if not admin or not verify_password(data.password, admin["password"]):
+    normalized_email = data.email.strip().lower()
+    password = data.password.strip()
+    admin = await db.admins.find_one({"email": normalized_email}, {"_id": 0})
+    if not admin or not verify_password(password, admin["password"]):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
-    token = create_token(data.email)
+    token = create_token(normalized_email)
     return AdminToken(access_token=token)
 
 @api_router.get("/admin/me")
@@ -319,110 +341,8 @@ async def export_users_csv(
 # Questions endpoint
 @api_router.get("/questions")
 async def get_questions():
-    """Return assessment questions"""
-    questions = [
-        {
-            "id": 1,
-            "category": "Fiscal Studies",
-            "question": "How would you describe your understanding of tax deductions and credits?",
-            "options": [
-                {"label": "I have basic knowledge of common deductions", "score": 1},
-                {"label": "I understand various deduction categories and can optimize them", "score": 2},
-                {"label": "I have expert knowledge of complex tax strategies and credits", "score": 3}
-            ]
-        },
-        {
-            "id": 2,
-            "category": "Fiscal Studies",
-            "question": "How do you approach financial compliance and reporting?",
-            "options": [
-                {"label": "I rely on basic compliance checklists", "score": 1},
-                {"label": "I actively monitor regulatory changes and adapt processes", "score": 2},
-                {"label": "I implement proactive compliance frameworks and audits", "score": 3}
-            ]
-        },
-        {
-            "id": 3,
-            "category": "Fiscal Studies",
-            "question": "What is your experience with international tax regulations?",
-            "options": [
-                {"label": "Limited to domestic operations", "score": 1},
-                {"label": "Familiar with basic cross-border tax implications", "score": 2},
-                {"label": "Expert in transfer pricing and international tax planning", "score": 3}
-            ]
-        },
-        {
-            "id": 4,
-            "category": "Innovation",
-            "question": "How does your organization approach digital transformation?",
-            "options": [
-                {"label": "We have basic digital tools in place", "score": 1},
-                {"label": "We actively implement automation and digital workflows", "score": 2},
-                {"label": "We lead with AI-driven processes and continuous innovation", "score": 3}
-            ]
-        },
-        {
-            "id": 5,
-            "category": "Innovation",
-            "question": "How do you incorporate R&D into your business strategy?",
-            "options": [
-                {"label": "Limited R&D activities focused on maintenance", "score": 1},
-                {"label": "Dedicated R&D budget with periodic innovation projects", "score": 2},
-                {"label": "Strategic R&D integrated with business objectives", "score": 3}
-            ]
-        },
-        {
-            "id": 6,
-            "category": "Innovation",
-            "question": "What is your approach to adopting emerging technologies?",
-            "options": [
-                {"label": "We wait for technologies to mature before adopting", "score": 1},
-                {"label": "We pilot new technologies selectively", "score": 2},
-                {"label": "We actively seek and implement cutting-edge solutions", "score": 3}
-            ]
-        },
-        {
-            "id": 7,
-            "category": "Accounting",
-            "question": "How would you rate your financial forecasting capabilities?",
-            "options": [
-                {"label": "Basic budgeting with historical data", "score": 1},
-                {"label": "Rolling forecasts with scenario analysis", "score": 2},
-                {"label": "Advanced predictive analytics and modeling", "score": 3}
-            ]
-        },
-        {
-            "id": 8,
-            "category": "Accounting",
-            "question": "What accounting standards does your organization follow?",
-            "options": [
-                {"label": "Basic GAAP compliance", "score": 1},
-                {"label": "Full GAAP with some IFRS knowledge", "score": 2},
-                {"label": "Multi-standard compliance with advanced reporting", "score": 3}
-            ]
-        },
-        {
-            "id": 9,
-            "category": "Accounting",
-            "question": "How sophisticated is your cost accounting system?",
-            "options": [
-                {"label": "Basic cost tracking and allocation", "score": 1},
-                {"label": "Activity-based costing with regular analysis", "score": 2},
-                {"label": "Advanced cost modeling with profitability analytics", "score": 3}
-            ]
-        },
-        {
-            "id": 10,
-            "category": "Accounting",
-            "question": "How do you manage financial controls and risk?",
-            "options": [
-                {"label": "Standard internal controls and periodic reviews", "score": 1},
-                {"label": "Comprehensive risk framework with regular assessments", "score": 2},
-                {"label": "Enterprise risk management with real-time monitoring", "score": 3}
-            ]
-        }
-    ]
-    return questions
+    """Return configured assessment questions."""
+    return ASSESSMENT_CONFIG["questions"]
 
 # Include the router
 app.include_router(api_router)
@@ -441,6 +361,10 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+@app.on_event("startup")
+async def startup_checks():
+    ensure_secure_settings()
 
 @app.on_event("shutdown")
 async def shutdown_db_client():

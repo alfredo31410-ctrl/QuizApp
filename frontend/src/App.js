@@ -8,8 +8,8 @@ import AdminLogin from "@/pages/AdminLogin";
 import AdminDashboard from "@/pages/AdminDashboard";
 import UserDetail from "@/pages/UserDetail";
 
-// Register service worker
-if ('serviceWorker' in navigator) {
+// Register service worker only in production to avoid stale caches during local development.
+if (process.env.NODE_ENV === "production" && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js')
       .then((registration) => {

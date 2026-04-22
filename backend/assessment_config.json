@@ -1,0 +1,312 @@
+{
+  "assessment": {
+    "title": "Diagnostico del Contador CEFIN (Version Pro)",
+    "description": "Diagnostico profesional para contadores CEFIN."
+  },
+  "score_system": {
+    "A": 1,
+    "B": 2,
+    "C": 3,
+    "D": 4,
+    "E": 5
+  },
+  "levels": [
+    {
+      "id": 1,
+      "min_score": 20,
+      "max_score": 35,
+      "title": "Contador Inseguro",
+      "subtitle": "Tu siguiente paso es ganar claridad y confianza",
+      "description": "Estas construyendo tus bases. Hoy el mayor impulso vendra de fortalecer tu criterio tecnico, ordenar tu aprendizaje y sentirte mas seguro al responder y cobrar.",
+      "show_calendly": false,
+      "video_id": "dQw4w9WgXcQ",
+      "color": "#3B82F6"
+    },
+    {
+      "id": 2,
+      "min_score": 36,
+      "max_score": 55,
+      "title": "Contador Operativo",
+      "subtitle": "Ya cumples, ahora toca elevar tu criterio",
+      "description": "Tienes traccion y experiencia operativa, pero aun hay espacio para fortalecer seguridad, estructura y posicionamiento para dejar de solo ejecutar y empezar a influir mas.",
+      "show_calendly": false,
+      "video_id": "dQw4w9WgXcQ",
+      "color": "#F97316"
+    },
+    {
+      "id": 3,
+      "min_score": 56,
+      "max_score": 70,
+      "title": "Contador Tecnico",
+      "subtitle": "Tu conocimiento ya genera valor",
+      "description": "Ya cuentas con una base tecnica solida. El siguiente nivel consiste en estructurar mejor tu valor, comunicarlo con seguridad y convertirlo en mejores clientes e ingresos.",
+      "show_calendly": true,
+      "video_id": "dQw4w9WgXcQ",
+      "color": "#EAB308"
+    },
+    {
+      "id": 4,
+      "min_score": 71,
+      "max_score": 85,
+      "title": "Contador Estrategico",
+      "subtitle": "Ya no solo ejecutas, orientas decisiones",
+      "description": "Tu perfil muestra criterio, analisis y capacidad para generar recomendaciones de alto valor. Estas en posicion de crecer en ingresos, posicionamiento y sofisticacion de tu servicio.",
+      "show_calendly": true,
+      "video_id": "dQw4w9WgXcQ",
+      "color": "#22C55E"
+    },
+    {
+      "id": 5,
+      "min_score": 86,
+      "max_score": 100,
+      "title": "Contador Consultor",
+      "subtitle": "Tu perfil esta listo para escalar",
+      "description": "Operas con un enfoque consultivo y estrategico. Tu reto ya no es solo mejorar tecnicamente, sino escalar tu modelo, aumentar impacto y construir una practica de mayor nivel.",
+      "show_calendly": true,
+      "video_id": "dQw4w9WgXcQ",
+      "color": "#C41E3A"
+    }
+  ],
+  "questions": [
+    {
+      "id": 1,
+      "category": "Criterio Fiscal",
+      "question": "Cuando un cliente te hace una pregunta fiscal compleja (ISR, IVA, NIF)...",
+      "options": [
+        { "id": "A", "label": "Prefiero no responder en el momento porque siento que puedo equivocarme y necesito investigarlo todo" },
+        { "id": "B", "label": "Doy una respuesta general, pero con inseguridad porque no estoy completamente seguro" },
+        { "id": "C", "label": "Respondo con base en lo que se, pero despues reviso para confirmar que no haya error" },
+        { "id": "D", "label": "Respondo con claridad y sustento tecnico, explicando el por que" },
+        { "id": "E", "label": "Respondo con seguridad y ademas propongo alternativas estrategicas segun el caso del cliente" }
+      ]
+    },
+    {
+      "id": 2,
+      "category": "Practica Profesional",
+      "question": "Hoy, tu practica contable se basa principalmente en...",
+      "options": [
+        { "id": "A", "label": "Aprender y tratar de entender lo basico para no equivocarme" },
+        { "id": "B", "label": "Cumplir con lo que me piden los clientes (declaraciones, CFDI, etc.)" },
+        { "id": "C", "label": "Entender lo que hago y mejorar poco a poco mi criterio" },
+        { "id": "D", "label": "Analizar la informacion y dar recomendaciones" },
+        { "id": "E", "label": "Asesorar y ayudar a tomar decisiones de negocio" }
+      ]
+    },
+    {
+      "id": 3,
+      "category": "Ingresos",
+      "question": "Actualmente, tus ingresos mensuales aproximados por servicios contables son:",
+      "options": [
+        { "id": "A", "label": "No genero ingresos o menos de $5,000 MXN" },
+        { "id": "B", "label": "Entre $5,000 y $15,000 MXN (pocos clientes, ingresos inestables)" },
+        { "id": "C", "label": "Entre $15,000 y $30,000 MXN (ya tengo cierta estabilidad)" },
+        { "id": "D", "label": "Entre $30,000 y $80,000 MXN (clientes mejor pagados y mas control)" },
+        { "id": "E", "label": "Mas de $80,000 MXN (clientes estrategicos o despacho en crecimiento)" }
+      ]
+    },
+    {
+      "id": 4,
+      "category": "Cobro",
+      "question": "Cuando tienes que cobrar por tu trabajo...",
+      "options": [
+        { "id": "A", "label": "Me cuesta mucho trabajo poner precio y termino cobrando menos por miedo a perder al cliente" },
+        { "id": "B", "label": "Cobro, pero con duda y a veces cedo ante negociaciones" },
+        { "id": "C", "label": "Cobro lo que considero justo, aunque no siempre lo defiendo con firmeza" },
+        { "id": "D", "label": "Cobro con argumentos claros basados en el valor que entrego" },
+        { "id": "E", "label": "Cobro con total seguridad porque se el impacto que genero en mis clientes" }
+      ]
+    },
+    {
+      "id": 5,
+      "category": "Ejecucion Tecnica",
+      "question": "Cuando realizas contabilidad o calculos fiscales...",
+      "options": [
+        { "id": "A", "label": "Sigo pasos sin entender completamente lo que estoy haciendo" },
+        { "id": "B", "label": "Cumplo con los procesos, aunque no siempre entiendo el fondo" },
+        { "id": "C", "label": "Entiendo la mayoria de lo que hago" },
+        { "id": "D", "label": "Interpreto la informacion para detectar errores o areas de mejora" },
+        { "id": "E", "label": "Uso la informacion para tomar decisiones y asesorar estrategicamente" }
+      ]
+    },
+    {
+      "id": 6,
+      "category": "Clientes",
+      "question": "Sobre tus clientes actuales...",
+      "options": [
+        { "id": "A", "label": "No tengo clientes o apenas estoy buscando" },
+        { "id": "B", "label": "Tengo pocos clientes, generalmente pequenos y sensibles al precio" },
+        { "id": "C", "label": "Tengo clientes estables, aunque no todos bien pagados" },
+        { "id": "D", "label": "Tengo clientes que valoran mas mi trabajo y pagan mejor" },
+        { "id": "E", "label": "Tengo clientes que me ven como asesor y toman decisiones conmigo" }
+      ]
+    },
+    {
+      "id": 7,
+      "category": "Decision Fiscal",
+      "question": "Cuando debes tomar una decision fiscal importante...",
+      "options": [
+        { "id": "A", "label": "Dependo totalmente de internet, cursos o terceros" },
+        { "id": "B", "label": "Busco ayuda porque no confio en mi criterio" },
+        { "id": "C", "label": "Analizo y comparo opciones antes de decidir" },
+        { "id": "D", "label": "Decido con criterio tecnico" },
+        { "id": "E", "label": "Decido estrategicamente considerando impacto fiscal y financiero" }
+      ]
+    },
+    {
+      "id": 8,
+      "category": "Frustracion",
+      "question": "Cual es tu principal frustracion hoy como contador?",
+      "options": [
+        { "id": "A", "label": "No saber aplicar correctamente lo que estudio" },
+        { "id": "B", "label": "Sentirme inseguro frente a clientes" },
+        { "id": "C", "label": "Tener conocimiento, pero no saber estructurarlo" },
+        { "id": "D", "label": "Saber que puedo crecer, pero no saber como" },
+        { "id": "E", "label": "Tener resultados, pero no lograr escalar" }
+      ]
+    },
+    {
+      "id": 9,
+      "category": "Carga de Trabajo",
+      "question": "Como describes tu carga de trabajo?",
+      "options": [
+        { "id": "A", "label": "Muy baja o inexistente" },
+        { "id": "B", "label": "Desordenada y reactiva (todo urgente)" },
+        { "id": "C", "label": "Constante, pero a veces saturada" },
+        { "id": "D", "label": "Organizada y bajo control" },
+        { "id": "E", "label": "Delegada en parte o con apoyo de procesos/equipo" }
+      ]
+    },
+    {
+      "id": 10,
+      "category": "Dominio Tecnico",
+      "question": "Tu nivel actual en ISR, IVA y NIF es:",
+      "options": [
+        { "id": "A", "label": "Muy basico, aun me confundo en lo esencial" },
+        { "id": "B", "label": "Basico, entiendo lo general pero me cuesta aplicarlo" },
+        { "id": "C", "label": "Intermedio, ya aplico varios conceptos correctamente" },
+        { "id": "D", "label": "Avanzado, entiendo y explico con claridad" },
+        { "id": "E", "label": "Dominio aplicado, lo uso para generar valor estrategico" }
+      ]
+    },
+    {
+      "id": 11,
+      "category": "Comunicacion",
+      "question": "Cuando un cliente no entiende algo...",
+      "options": [
+        { "id": "A", "label": "Prefiero evitar explicarlo para no complicarme" },
+        { "id": "B", "label": "Explico lo basico sin profundizar" },
+        { "id": "C", "label": "Explico con ejemplos para que lo entienda" },
+        { "id": "D", "label": "Explico con claridad y seguridad" },
+        { "id": "E", "label": "Lo llevo a entender el impacto en su negocio y tomar decisiones" }
+      ]
+    },
+    {
+      "id": 12,
+      "category": "Valor Profesional",
+      "question": "Hoy, tu valor como contador esta basado en...",
+      "options": [
+        { "id": "A", "label": "Lo que se (aunque siento que aun es poco)" },
+        { "id": "B", "label": "Cumplir correctamente con obligaciones" },
+        { "id": "C", "label": "Hacer bien mi trabajo tecnico" },
+        { "id": "D", "label": "Aportar analisis y claridad" },
+        { "id": "E", "label": "Generar impacto real en el negocio del cliente" }
+      ]
+    },
+    {
+      "id": 13,
+      "category": "Procesos",
+      "question": "Tus procesos de trabajo son...",
+      "options": [
+        { "id": "A", "label": "Inexistentes" },
+        { "id": "B", "label": "Improvisados segun el cliente" },
+        { "id": "C", "label": "Parciales (algunas cosas estructuradas)" },
+        { "id": "D", "label": "Definidos y organizados" },
+        { "id": "E", "label": "Estandarizados y optimizados" }
+      ]
+    },
+    {
+      "id": 14,
+      "category": "Escalabilidad",
+      "question": "Que tanto depende tu ingreso de tu tiempo?",
+      "options": [
+        { "id": "A", "label": "Totalmente (si no trabajo, no gano)" },
+        { "id": "B", "label": "Mucho (todo pasa por mi)" },
+        { "id": "C", "label": "Bastante (aunque ya tengo algo de orden)" },
+        { "id": "D", "label": "Poco (tengo cierta estructura)" },
+        { "id": "E", "label": "Cada vez menos (procesos/equipo ayudan a generar ingreso)" }
+      ]
+    },
+    {
+      "id": 15,
+      "category": "Crecimiento",
+      "question": "Sobre tu crecimiento profesional...",
+      "options": [
+        { "id": "A", "label": "No tengo claro hacia donde voy" },
+        { "id": "B", "label": "Solo quiero tener mas clientes" },
+        { "id": "C", "label": "Quiero mejorar mi nivel tecnico" },
+        { "id": "D", "label": "Quiero crecer en ingresos y posicionamiento" },
+        { "id": "E", "label": "Quiero escalar y construir algo mas grande" }
+      ]
+    },
+    {
+      "id": 16,
+      "category": "Manejo de Errores",
+      "question": "Cuando ocurre un error fiscal...",
+      "options": [
+        { "id": "A", "label": "Me genera mucho miedo e inseguridad" },
+        { "id": "B", "label": "Me estresa y me cuesta manejarlo" },
+        { "id": "C", "label": "Lo corrijo y sigo adelante" },
+        { "id": "D", "label": "Analizo por que paso para evitarlo" },
+        { "id": "E", "label": "Trabajo con prevencion y estrategia para minimizar riesgos" }
+      ]
+    },
+    {
+      "id": 17,
+      "category": "Vision Profesional",
+      "question": "Hoy ves tu profesion como...",
+      "options": [
+        { "id": "A", "label": "Algo complicado que aun no domino" },
+        { "id": "B", "label": "Un trabajo demandante" },
+        { "id": "C", "label": "Una carrera con oportunidades" },
+        { "id": "D", "label": "Una oportunidad de crecimiento real" },
+        { "id": "E", "label": "Un negocio con potencial de escalamiento" }
+      ]
+    },
+    {
+      "id": 18,
+      "category": "Estados Financieros",
+      "question": "Que haces con los estados financieros?",
+      "options": [
+        { "id": "A", "label": "No los uso o no los entiendo" },
+        { "id": "B", "label": "Solo los elaboro" },
+        { "id": "C", "label": "Los reviso de forma general" },
+        { "id": "D", "label": "Los analizo para entender el negocio" },
+        { "id": "E", "label": "Los uso para asesorar y tomar decisiones estrategicas" }
+      ]
+    },
+    {
+      "id": 19,
+      "category": "Seguridad Comercial",
+      "question": "Como te sientes frente a un cliente importante?",
+      "options": [
+        { "id": "A", "label": "Muy inseguro, evito situaciones complejas" },
+        { "id": "B", "label": "Inseguro, trato de cumplir sin errores" },
+        { "id": "C", "label": "Moderadamente seguro" },
+        { "id": "D", "label": "Seguro, puedo explicar con claridad" },
+        { "id": "E", "label": "Totalmente seguro, lidero la conversacion" }
+      ]
+    },
+    {
+      "id": 20,
+      "category": "Meta",
+      "question": "Si tuvieras que describir tu meta en 6 meses...",
+      "options": [
+        { "id": "A", "label": "Entender bien la contabilidad y no sentirme perdido" },
+        { "id": "B", "label": "Sentirme seguro con clientes" },
+        { "id": "C", "label": "Tener mejores clientes y mayor estabilidad" },
+        { "id": "D", "label": "Ganar mas y posicionarme mejor" },
+        { "id": "E", "label": "Escalar mi despacho o modelo de ingresos" }
+      ]
+    }
+  ]
+}

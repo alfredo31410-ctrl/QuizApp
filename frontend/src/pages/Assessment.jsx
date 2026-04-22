@@ -5,10 +5,9 @@ import { ArrowRight, ArrowLeft, CheckCircle } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { API } from "@/lib/api";
 import { toast } from "sonner";
 import axios from "axios";
-
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function Assessment() {
   const navigate = useNavigate();
@@ -116,9 +115,8 @@ export default function Assessment() {
     setSubmitting(true);
     try {
       const responses = questions.map((q) => ({
-        question: q.question,
-        answer: answers[q.id]?.label || "",
-        score: answers[q.id]?.score || 0,
+        question_id: q.id,
+        option_id: answers[q.id]?.id || "",
       }));
 
       const payload = {
@@ -318,14 +316,17 @@ export default function Assessment() {
               <div className="space-y-4">
                 {questions[step - 2].options.map((option, index) => (
                   <button
-                    key={index}
+                    key={option.id}
                     data-testid={`option-${index}`}
                     onClick={() => handleSelectOption(questions[step - 2].id, option)}
                     className={`option-card ${
                       answers[questions[step - 2].id]?.label === option.label ? "selected" : ""
                     }`}
                   >
-                    <span>{option.label}</span>
+                    <span className="flex items-start gap-3 text-left">
+                      <span className="font-semibold text-[#C41E3A] min-w-5">{option.id}.</span>
+                      <span>{option.label}</span>
+                    </span>
                     {answers[questions[step - 2].id]?.label === option.label && (
                       <CheckCircle className="h-6 w-6 text-[#C41E3A]" weight="fill" />
                     )}
