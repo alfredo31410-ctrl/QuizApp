@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
@@ -54,25 +54,11 @@ export default function AdminDashboard() {
   const [levelFilter, setLevelFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  useEffect(() => {
-    const token = localStorage.getItem("admin_token");
-    if (!token) {
-      navigate("/admin/login");
-      return;
-    }
-    fetchAdminInfo();
-    fetchUsers();
-  }, [navigate]);
-
-  useEffect(() => {
-    fetchUsers();
-  }, [levelFilter, statusFilter]);
-
   const getAuthHeaders = () => ({
     headers: { Authorization: `Bearer ${localStorage.getItem("admin_token")}` },
   });
 
-  const fetchAdminInfo = async () => {
+  const fetchAdminInfo = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/admin/me`, getAuthHeaders());
       setAdminInfo(response.data);
@@ -82,9 +68,9 @@ export default function AdminDashboard() {
         navigate("/admin/login");
       }
     }
-  };
+  }, [navigate]);
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
       const params = {};
@@ -109,7 +95,17 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [levelFilter, navigate, statusFilter]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("admin_token");
+    if (!token) {
+      navigate("/admin/login");
+      return;
+    }
+    fetchAdminInfo();
+    fetchUsers();
+  }, [fetchAdminInfo, fetchUsers, navigate]);
 
   const handleExportCSV = async () => {
     try {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, User, Envelope, Phone, Calendar, Trophy, Warning } from "@phosphor-icons/react";
@@ -34,16 +34,7 @@ export default function UserDetail() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const token = localStorage.getItem("admin_token");
-    if (!token) {
-      navigate("/admin/login");
-      return;
-    }
-    fetchUserDetail();
-  }, [userId, navigate]);
-
-  const fetchUserDetail = async () => {
+  const fetchUserDetail = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/admin/users/${userId}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("admin_token")}` },
@@ -62,7 +53,16 @@ export default function UserDetail() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate, userId]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("admin_token");
+    if (!token) {
+      navigate("/admin/login");
+      return;
+    }
+    fetchUserDetail();
+  }, [fetchUserDetail, navigate]);
 
   if (loading) {
     return (
