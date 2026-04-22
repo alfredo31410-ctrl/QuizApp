@@ -117,6 +117,12 @@ def get_option_score(option_id: str) -> int:
         raise HTTPException(status_code=400, detail=f"Invalid option id: {option_id}")
     return score
 
+def normalize_email(email: str) -> str:
+    return email.strip().lower()
+
+def normalize_phone(phone: str) -> str:
+    return phone.strip()
+
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
@@ -192,14 +198,17 @@ async def root():
 # Capture user info (before questions - saves as abandoned)
 @api_router.post("/assessment/capture")
 async def capture_user_info(data: UserCapture):
+    normalized_email = normalize_email(data.email)
+    normalized_phone = normalize_phone(data.phone)
+
     # Check if user with this email already exists and is abandoned
-    existing = await db.users.find_one({"email": data.email, "status": "abandoned"}, {"_id": 0})
+    existing = await db.users.find_one({"email": normalized_email, "status": "abandoned"}, {"_id": 0})
     
     if existing:
         # Update existing abandoned record
         await db.users.update_one(
-            {"email": data.email, "status": "abandoned"},
-            {"$set": {"name": data.name, "phone": data.phone, "created_at": datetime.now(timezone.utc).isoformat()}}
+            {"email": normalized_email, "status": "abandoned"},
+            {"$set": {"name": data.name.strip(), "phone": normalized_phone, "created_at": datetime.now(timezone.utc).isoformat()}}
         )
         return {"success": True, "user_id": existing["id"], "message": "User info updated"}
     
@@ -207,9 +216,9 @@ async def capture_user_info(data: UserCapture):
     user_id = str(uuid.uuid4())
     user_doc = {
         "id": user_id,
-        "name": data.name,
-        "email": data.email,
-        "phone": data.phone,
+        "name": data.name.strip(),
+        "email": normalized_email,
+        "phone": normalized_phone,
         "score": None,
         "level": None,
         "status": "abandoned",
@@ -295,7 +304,7 @@ async def submit_assessment(data: AssessmentSubmit):
 
 @api_router.post("/admin/login", response_model=AdminToken)
 async def login_admin(data: AdminLogin, request: Request):
-    normalized_email = data.email.strip().lower()
+    normalized_email = normalize_email(data.email)
     password = data.password.strip()
     identifier = get_client_identifier(request, normalized_email)
 
@@ -378,12 +387,16 @@ async def get_questions():
     """Return configured assessment questions."""
     return ASSESSMENT_CONFIG["questions"]
 
+@api_router.get("/health")
+async def health_check():
+    return {"status": "ok"}
+
 # Include the router
 app.include_router(api_router)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_credentials=True,
+    allow_credentials=False,
     allow_origins=ALLOWED_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -409,6 +422,9 @@ logger = logging.getLogger(__name__)
 @app.on_event("startup")
 async def startup_checks():
     ensure_secure_settings()
+    await db.admins.create_index("email", unique=True)
+    await db.users.create_index([("email", 1), ("status", 1)])
+    await db.responses.create_index("user_id")
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
