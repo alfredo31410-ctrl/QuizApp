@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field, ConfigDict, EmailStr
 from typing import List, Optional
 import uuid
 from datetime import datetime, timezone, timedelta
+from collections import defaultdict
 import jwt
 import bcrypt
 
@@ -30,6 +31,10 @@ db = client[os.environ['DB_NAME']]
 JWT_SECRET = os.environ.get('JWT_SECRET', 'your-secret-key-change-in-production')
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRATION_HOURS = 24
+LOGIN_WINDOW_MINUTES = 15
+MAX_LOGIN_ATTEMPTS = 5
+ALLOWED_ORIGINS = [origin.strip() for origin in os.environ.get('CORS_ORIGINS', '*').split(',') if origin.strip()]
+FAILED_LOGIN_ATTEMPTS = defaultdict(list)
 
 # Create the main app
 app = FastAPI()
@@ -126,6 +131,28 @@ def create_token(email: str) -> str:
 def ensure_secure_settings() -> None:
     if JWT_SECRET == 'your-secret-key-change-in-production':
         logger.warning("JWT_SECRET is using the default insecure value. Change it before production deployment.")
+    if '*' in ALLOWED_ORIGINS:
+        logger.warning("CORS_ORIGINS currently allows every origin. Restrict it before final production launch.")
+
+def get_client_identifier(request: Request, email: str) -> str:
+    forwarded_for = request.headers.get("x-forwarded-for", "")
+    client_ip = forwarded_for.split(",")[0].strip() if forwarded_for else (request.client.host if request.client else "unknown")
+    return f"{client_ip}:{email}"
+
+def is_rate_limited(identifier: str) -> bool:
+    now = datetime.now(timezone.utc)
+    cutoff = now - timedelta(minutes=LOGIN_WINDOW_MINUTES)
+    FAILED_LOGIN_ATTEMPTS[identifier] = [
+        attempt for attempt in FAILED_LOGIN_ATTEMPTS[identifier]
+        if attempt > cutoff
+    ]
+    return len(FAILED_LOGIN_ATTEMPTS[identifier]) >= MAX_LOGIN_ATTEMPTS
+
+def register_failed_attempt(identifier: str) -> None:
+    FAILED_LOGIN_ATTEMPTS[identifier].append(datetime.now(timezone.utc))
+
+def clear_failed_attempts(identifier: str) -> None:
+    FAILED_LOGIN_ATTEMPTS.pop(identifier, None)
 
 async def get_current_admin(credentials: HTTPAuthorizationCredentials = Depends(security)):
     try:
@@ -267,13 +294,20 @@ async def submit_assessment(data: AssessmentSubmit):
     }
 
 @api_router.post("/admin/login", response_model=AdminToken)
-async def login_admin(data: AdminLogin):
+async def login_admin(data: AdminLogin, request: Request):
     normalized_email = data.email.strip().lower()
     password = data.password.strip()
+    identifier = get_client_identifier(request, normalized_email)
+
+    if is_rate_limited(identifier):
+        raise HTTPException(status_code=429, detail="Too many login attempts. Try again later.")
+
     admin = await db.admins.find_one({"email": normalized_email}, {"_id": 0})
     if not admin or not verify_password(password, admin["password"]):
+        register_failed_attempt(identifier)
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    
+
+    clear_failed_attempts(identifier)
     token = create_token(normalized_email)
     return AdminToken(access_token=token)
 
@@ -350,10 +384,20 @@ app.include_router(api_router)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_origins=ALLOWED_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    response.headers["Cache-Control"] = "no-store" if request.url.path.startswith("/api/admin") else response.headers.get("Cache-Control", "no-store")
+    return response
 
 # Configure logging
 logging.basicConfig(

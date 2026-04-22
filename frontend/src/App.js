@@ -8,15 +8,18 @@ import AdminLogin from "@/pages/AdminLogin";
 import AdminDashboard from "@/pages/AdminDashboard";
 import UserDetail from "@/pages/UserDetail";
 
-// Register service worker only in production to avoid stale caches during local development.
-if (process.env.NODE_ENV === "production" && 'serviceWorker' in navigator) {
+// This app does not need offline caching; unregister old service workers to avoid stale deployments.
+if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then((registration) => {
-        console.log('SW registered:', registration);
+    navigator.serviceWorker.getRegistrations()
+      .then((registrations) => Promise.all(
+        registrations.map((registration) => registration.unregister())
+      ))
+      .then(() => {
+        console.log('SW cleanup completed');
       })
       .catch((error) => {
-        console.log('SW registration failed:', error);
+        console.log('SW cleanup failed:', error);
       });
   });
 }
