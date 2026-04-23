@@ -40,19 +40,6 @@ MONGO_URL=
 DB_NAME=quizapp
 JWT_SECRET=
 CORS_ORIGINS=http://localhost:3000
-WHATSAPP_ACCESS_TOKEN=
-WHATSAPP_PHONE_NUMBER_ID=
-WHATSAPP_ADMIN_PHONE=
-WHATSAPP_MESSAGE_TYPE=text
-```
-
-Variables opcionales si usas plantilla aprobada por Meta:
-
-```env
-WHATSAPP_MESSAGE_TYPE=template
-WHATSAPP_TEMPLATE_NAME=diagnostico_cefin
-WHATSAPP_TEMPLATE_LANGUAGE=es_MX
-WHATSAPP_GRAPH_VERSION=v21.0
 ```
 
 ### Frontend
@@ -121,35 +108,18 @@ Aqui cambias:
 - exportaciones
 - integraciones reales
 
-## WhatsApp real
+## Integraciones
 
-El backend ya puede mandar mensajes con WhatsApp Cloud API de Meta.
+Por ahora las integraciones estan en modo simulado para mantener el lanzamiento simple y estable.
 
-Para pruebas rapidas puedes usar:
+Despues de cada diagnostico completo, el backend guarda eventos `mocked` para:
 
-```env
-WHATSAPP_MESSAGE_TYPE=text
-```
+- ActiveCampaign
+- WhatsApp
 
-Para produccion formal normalmente conviene usar:
+En el panel admin, abre el detalle de un usuario y revisa la seccion `Integraciones`. Ahi puedes ver el mensaje que se habria mandado por WhatsApp.
 
-```env
-WHATSAPP_MESSAGE_TYPE=template
-```
-
-Nota importante: WhatsApp tiene reglas de Meta. Los mensajes libres tipo `text` solo funcionan si existe una conversacion abierta o en ciertos entornos de prueba. Para iniciar conversaciones en produccion, Meta suele requerir una plantilla aprobada.
-
-Variables necesarias en Railway:
-
-- `WHATSAPP_ACCESS_TOKEN`: token permanente o token valido de Meta.
-- `WHATSAPP_PHONE_NUMBER_ID`: ID del numero emisor en Meta.
-- `WHATSAPP_ADMIN_PHONE`: numero destino en formato internacional sin `+`, por ejemplo `525512345678`.
-- `WHATSAPP_MESSAGE_TYPE`: `text` o `template`.
-- `WHATSAPP_TEMPLATE_NAME`: requerido si usas `template`.
-- `WHATSAPP_TEMPLATE_LANGUAGE`: por ejemplo `es_MX`.
-- `WHATSAPP_GRAPH_VERSION`: opcional, por defecto `v21.0`.
-
-Despues de cada diagnostico completo, revisa el detalle del usuario en el admin. La seccion `Integraciones` muestra si WhatsApp quedo `sent`, `failed` o `mocked`, junto con la respuesta de Meta.
+Cuando sea momento de conectar WhatsApp real, el lugar correcto para cambiarlo es [backend/server.py](/C:/Users/cgcon/OneDrive/Escritorio/QUIZZ/QuizApp/backend/server.py), en la funcion `mock_whatsapp_notification`.
 
 ### Crear admin manual
 
@@ -206,10 +176,6 @@ Variables que debes cargar en Railway:
 - `DB_NAME`
 - `JWT_SECRET`
 - `CORS_ORIGINS`
-- `WHATSAPP_ACCESS_TOKEN`
-- `WHATSAPP_PHONE_NUMBER_ID`
-- `WHATSAPP_ADMIN_PHONE`
-- `WHATSAPP_MESSAGE_TYPE`
 
 Cuando termine el deploy, genera un dominio publico en Railway.
 
