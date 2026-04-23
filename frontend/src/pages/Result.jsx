@@ -9,7 +9,7 @@ const levelConfig = {
     subtitle: "Tu siguiente paso es ganar claridad y confianza",
     description: "Estás construyendo tus bases. Hoy el mayor impulso vendrá de fortalecer tu criterio técnico, ordenar tu aprendizaje y sentirte más seguro al responder y cobrar.",
     icon: Target,
-    color: "#3B82F6",
+    color: "#7bb9d6",
     showCalendly: false,
     videoId: "dQw4w9WgXcQ",
   },
@@ -18,7 +18,7 @@ const levelConfig = {
     subtitle: "Ya cumples, ahora toca elevar tu criterio",
     description: "Tienes tracción y experiencia operativa, pero aún hay espacio para fortalecer seguridad, estructura y posicionamiento para dejar de solo ejecutar y empezar a influir más.",
     icon: Star,
-    color: "#F97316",
+    color: "#d8b66a",
     showCalendly: false,
     videoId: "dQw4w9WgXcQ",
   },
@@ -27,7 +27,7 @@ const levelConfig = {
     subtitle: "Tu conocimiento ya genera valor",
     description: "Ya cuentas con una base técnica sólida. El siguiente nivel consiste en estructurar mejor tu valor, comunicarlo con seguridad y convertirlo en mejores clientes e ingresos.",
     icon: ChartLineUp,
-    color: "#EAB308",
+    color: "#0a5594",
     showCalendly: true,
     videoId: "dQw4w9WgXcQ",
   },
@@ -36,7 +36,7 @@ const levelConfig = {
     subtitle: "Ya no solo ejecutas, orientas decisiones",
     description: "Tu perfil muestra criterio, análisis y capacidad para generar recomendaciones de alto valor. Estás en posición de crecer en ingresos, posicionamiento y sofisticación de tu servicio.",
     icon: Trophy,
-    color: "#22C55E",
+    color: "#c2111d",
     showCalendly: true,
     videoId: "dQw4w9WgXcQ",
   },
@@ -45,7 +45,7 @@ const levelConfig = {
     subtitle: "Tu perfil está listo para escalar",
     description: "Operas con un enfoque consultivo y estratégico. Tu reto ya no es solo mejorar técnicamente, sino escalar tu modelo, aumentar impacto y construir una práctica de mayor nivel.",
     icon: Rocket,
-    color: "#C41E3A",
+    color: "#950006",
     showCalendly: true,
     videoId: "dQw4w9WgXcQ",
   },
@@ -61,150 +61,116 @@ export default function Result() {
   const Icon = config.icon;
 
   return (
-    <div className="min-h-[100dvh] bg-[#0F1219]">
-      {/* Hero Section */}
-      <motion.div
+    <div className="assessment-page">
+      <motion.section
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6 }}
-        className="relative bg-gradient-to-br from-[#1A1F2E] to-[#0F1219] text-white py-24 px-6"
+        className="assessment-container"
       >
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1920')] bg-cover bg-center opacity-5" />
-        <div className="relative max-w-4xl mx-auto text-center">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className="w-24 h-24 rounded-full mx-auto mb-6 flex items-center justify-center shadow-2xl"
-            style={{ backgroundColor: config.color }}
-          >
-            <Icon className="h-12 w-12 text-white" weight="fill" />
-          </motion.div>
-          
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="text-lg mb-2 text-gray-400"
-          >
-            ¡Hola, {name}!
-          </motion.p>
-          
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-4"
-          >
-            {config.title}
-          </motion.h1>
-          
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="text-xl mb-6 text-gray-300"
-          >
-            {config.subtitle}
-          </motion.p>
-          
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            className="flex items-center justify-center gap-8"
-          >
-            <div className="text-center bg-[#1A1F2E] px-8 py-4 rounded-lg">
-              <p className="text-4xl font-bold">{score}</p>
-              <p className="text-sm text-gray-400">Puntuación Total</p>
-            </div>
-            <div className="w-px h-16 bg-white/20" />
-            <div className="text-center bg-[#1A1F2E] px-8 py-4 rounded-lg">
-              <p className="text-4xl font-bold" style={{ color: config.color }}>Nivel {levelNum}</p>
-              <p className="text-sm text-gray-400">Tu Nivel</p>
-            </div>
-          </motion.div>
-        </div>
-      </motion.div>
+        <div className="w-full max-w-5xl">
+          <div className="brand-lockup mb-8">
+            <span className="brand-wordmark text-[4rem]">
+              <span>CE</span>
+              <span>FIN</span>
+            </span>
+            <span className="brand-caption">Centro de Estudios Fiscales, Innovación y Negocios</span>
+          </div>
 
-      {/* Content Section */}
-      <div className="max-w-4xl mx-auto px-6 py-16">
+          <div className="assessment-card result-hero">
+            <motion.div
+              initial={{ scale: 0.85, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.15, type: "spring", stiffness: 180 }}
+              className="result-icon"
+              style={{ background: `linear-gradient(135deg, ${config.color}, var(--cefin-wine))` }}
+            >
+              <Icon className="h-11 w-11 text-white" weight="fill" />
+            </motion.div>
+
+            <div>
+              <p className="category-badge mb-5 inline-flex">Resultado del diagnóstico</p>
+              <p className="result-greeting">Hola, {name}</p>
+              <h1 className="hero-title">{config.title}</h1>
+              <p className="hero-description">{config.subtitle}</p>
+            </div>
+
+            <div className="result-stats">
+              <div>
+                <span>{score}</span>
+                <p>Puntuación total</p>
+              </div>
+              <div>
+                <span>Nivel {levelNum}</span>
+                <p>Clasificación CEFIN</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.section>
+
+      <div className="relative z-10 max-w-5xl mx-auto px-5 pb-16">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7 }}
-          className="card-swiss mb-12"
+          transition={{ delay: 0.35 }}
+          className="card-swiss mb-8"
         >
-          <h2 className="text-2xl font-bold mb-4 text-white">Resultados de tu Evaluación</h2>
-          <p className="text-gray-400 text-lg leading-relaxed">
-            {config.description}
-          </p>
+          <h2 className="text-2xl font-bold mb-4 text-white">Lectura de tu resultado</h2>
+          <p className="text-[var(--text-muted)] text-lg leading-relaxed">{config.description}</p>
         </motion.div>
 
-        {/* VSL Video */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-          className="card-swiss mb-12"
+          transition={{ delay: 0.45 }}
+          className="card-swiss mb-8"
           data-testid="vsl-video-container"
         >
-          <h3 className="text-xl font-bold mb-4 text-white">Mira Nuestra Presentación</h3>
+          <h3 className="text-xl font-bold mb-4 text-white">Mira la presentación recomendada</h3>
           <div className="video-container">
             <iframe
               data-testid="vsl-video"
               src={`https://www.youtube.com/embed/${config.videoId}`}
-              title="Video de Ventas"
+              title="Video de ventas"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />
           </div>
         </motion.div>
 
-        {/* Calendly Embed (only for levels 3-5) */}
         {config.showCalendly && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.9 }}
-            className="card-swiss mb-12"
+            transition={{ delay: 0.55 }}
+            className="card-swiss mb-8"
             data-testid="calendly-container"
           >
-            <h3 className="text-xl font-bold mb-4 text-white">Agenda una Consulta</h3>
-            <p className="text-gray-400 mb-6">
-              Basado en los resultados de tu evaluación, nos encantaría discutir estrategias personalizadas para tu organización.
+            <h3 className="text-xl font-bold mb-4 text-white">Agenda una consulta</h3>
+            <p className="text-[var(--text-muted)] mb-6">
+              Por tu resultado, tiene sentido revisar una ruta más personalizada para crecer en ingresos,
+              criterio y posicionamiento.
             </p>
-            <div 
-              className="calendly-embed border border-white/10 bg-[#252B3B] flex items-center justify-center rounded-lg"
-              data-testid="calendly-embed"
-            >
+            <div className="calendly-embed border border-white/10 bg-white/[0.04] flex items-center justify-center" data-testid="calendly-embed">
               <div className="text-center p-8">
-                <p className="text-lg font-medium text-white mb-2">Calendario de Citas</p>
-                <p className="text-gray-400 text-sm mb-4">
-                  [PLACEHOLDER] El widget de Calendly aparecerá aquí
-                </p>
-                <p className="text-xs text-gray-500">
-                  En producción, aquí se mostrará el widget de programación de Calendly
+                <p className="text-lg font-bold text-white mb-2">Calendario de citas</p>
+                <p className="text-[var(--text-muted)] text-sm">
+                  Aquí conectaremos el widget de Calendly cuando tengamos el enlace final.
                 </p>
               </div>
             </div>
           </motion.div>
         )}
 
-        {/* CTA */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1 }}
+          transition={{ delay: 0.65 }}
           className="text-center"
         >
-          <Button
-            data-testid="retake-assessment-btn"
-            onClick={() => navigate("/")}
-            variant="outline"
-            className="btn-outline"
-          >
-            Repetir Evaluación
+          <Button data-testid="retake-assessment-btn" onClick={() => navigate("/")} variant="outline" className="btn-outline">
+            Repetir diagnóstico
           </Button>
         </motion.div>
       </div>
