@@ -27,7 +27,7 @@ if ('serviceWorker' in navigator) {
 function App() {
   return (
     <div className="App">
-      <BrowserRouter>
+      <BrowserRouter basename="/quizz">
         <Routes>
           <Route path="/" element={<Assessment />} />
           <Route path="/result/:level" element={<Result />} />

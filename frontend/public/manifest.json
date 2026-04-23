@@ -2,7 +2,7 @@
   "name": "CEFIN - Evaluación Fiscal",
   "short_name": "CEFIN",
   "description": "Plataforma de evaluación y segmentación para estudios fiscales, innovación y contabilidad",
-  "start_url": "/",
+  "start_url": "/quizz",
   "display": "standalone",
   "background_color": "#0F1219",
   "theme_color": "#C41E3A",
