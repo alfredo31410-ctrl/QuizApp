@@ -1,6 +1,7 @@
 from fastapi import FastAPI, APIRouter, HTTPException, Depends, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
+from starlette.responses import JSONResponse
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
@@ -198,7 +199,11 @@ async def record_integration_event(user_id: str, provider: str, status: str, pay
         "payload": payload,
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
-    await db.integration_events.insert_one(event)
+    try:
+        await db.integration_events.insert_one(event)
+    except Exception:
+        # La integracion es secundaria: nunca debe impedir que el diagnostico se guarde.
+        logger.exception("Could not store integration event for provider=%s user_id=%s", provider, user_id)
     return event
 
 async def mock_active_campaign(user_id: str, user_data: dict, level: int):
@@ -241,6 +246,23 @@ async def mock_whatsapp_notification(user_id: str, user_data: dict, score: int, 
     logging.info("[MOCK WhatsApp] %s", payload)
     await record_integration_event(user_id, "whatsapp", "mocked", payload)
     return {"success": True, "status": "mocked", "message": "WhatsApp simulated", "message_preview": message}
+
+async def run_mock_integrations(user_id: str, user_data: dict, score: int, level: int):
+    """Ejecuta integraciones simuladas sin bloquear el guardado del diagnostico."""
+    results = {}
+    try:
+        results["active_campaign"] = await mock_active_campaign(user_id, user_data, level)
+    except Exception as error:
+        logger.exception("ActiveCampaign mock failed for user_id=%s", user_id)
+        results["active_campaign"] = {"success": False, "status": "failed", "message": str(error)}
+
+    try:
+        results["whatsapp"] = await mock_whatsapp_notification(user_id, user_data, score, level)
+    except Exception as error:
+        logger.exception("WhatsApp mock failed for user_id=%s", user_id)
+        results["whatsapp"] = {"success": False, "status": "failed", "message": str(error)}
+
+    return results
 
 # ============ ROUTES ============
 
@@ -341,8 +363,7 @@ async def submit_assessment(data: AssessmentSubmit):
     
     # Integraciones simuladas: dejan evidencia en Mongo y después se reemplazan por APIs reales.
     user_integration_data = {"name": user["name"], "email": user["email"], "phone": user["phone"]}
-    ac_result = await mock_active_campaign(data.user_id, user_integration_data, level)
-    wa_result = await mock_whatsapp_notification(data.user_id, user_integration_data, total_score, level)
+    integration_results = await run_mock_integrations(data.user_id, user_integration_data, total_score, level)
     
     return {
         "success": True,
@@ -350,10 +371,7 @@ async def submit_assessment(data: AssessmentSubmit):
         "score": total_score,
         "level": level,
         "name": user["name"],
-        "integrations": {
-            "active_campaign": ac_result,
-            "whatsapp": wa_result
-        }
+        "integrations": integration_results
     }
 
 @api_router.post("/admin/login", response_model=AdminToken)
@@ -472,6 +490,14 @@ async def add_security_headers(request: Request, call_next):
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
     response.headers["Cache-Control"] = "no-store" if request.url.path.startswith("/api/admin") else response.headers.get("Cache-Control", "no-store")
     return response
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    logger.exception("Unhandled error on %s", request.url.path)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error. Check backend logs for details."},
+    )
 
 # Configure logging
 logging.basicConfig(
