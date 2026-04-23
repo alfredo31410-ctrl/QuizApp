@@ -8,6 +8,9 @@ import logging
 import json
 import csv
 import io
+import asyncio
+import urllib.error
+import urllib.request
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict, EmailStr
 from typing import List, Optional
@@ -37,6 +40,13 @@ LOGIN_WINDOW_MINUTES = 15
 MAX_LOGIN_ATTEMPTS = 5
 ALLOWED_ORIGINS = [origin.strip() for origin in os.environ.get('CORS_ORIGINS', '*').split(',') if origin.strip()]
 FAILED_LOGIN_ATTEMPTS = defaultdict(list)
+WHATSAPP_GRAPH_VERSION = os.environ.get("WHATSAPP_GRAPH_VERSION", "v21.0")
+WHATSAPP_ACCESS_TOKEN = os.environ.get("WHATSAPP_ACCESS_TOKEN")
+WHATSAPP_PHONE_NUMBER_ID = os.environ.get("WHATSAPP_PHONE_NUMBER_ID")
+WHATSAPP_ADMIN_PHONE = os.environ.get("WHATSAPP_ADMIN_PHONE")
+WHATSAPP_MESSAGE_TYPE = os.environ.get("WHATSAPP_MESSAGE_TYPE", "text").lower()
+WHATSAPP_TEMPLATE_NAME = os.environ.get("WHATSAPP_TEMPLATE_NAME")
+WHATSAPP_TEMPLATE_LANGUAGE = os.environ.get("WHATSAPP_TEMPLATE_LANGUAGE", "es_MX")
 
 # Create the main app
 app = FastAPI()
@@ -242,6 +252,107 @@ async def mock_whatsapp_notification(user_id: str, user_data: dict, score: int, 
     await record_integration_event(user_id, "whatsapp", "mocked", payload)
     return {"success": True, "status": "mocked", "message": "WhatsApp simulated", "message_preview": message}
 
+def build_whatsapp_payload(user_data: dict, score: int, level: int) -> dict:
+    """Construye el payload para WhatsApp Cloud API en modo texto o plantilla."""
+    if WHATSAPP_MESSAGE_TYPE == "template":
+        if not WHATSAPP_TEMPLATE_NAME:
+            raise ValueError("WHATSAPP_TEMPLATE_NAME is required when WHATSAPP_MESSAGE_TYPE=template")
+        return {
+            "messaging_product": "whatsapp",
+            "to": WHATSAPP_ADMIN_PHONE,
+            "type": "template",
+            "template": {
+                "name": WHATSAPP_TEMPLATE_NAME,
+                "language": {"code": WHATSAPP_TEMPLATE_LANGUAGE},
+                "components": [
+                    {
+                        "type": "body",
+                        "parameters": [
+                            {"type": "text", "text": user_data["name"]},
+                            {"type": "text", "text": user_data["email"]},
+                            {"type": "text", "text": user_data["phone"]},
+                            {"type": "text", "text": get_level_name(level)},
+                            {"type": "text", "text": str(level)},
+                            {"type": "text", "text": str(score)},
+                        ],
+                    }
+                ],
+            },
+        }
+
+    return {
+        "messaging_product": "whatsapp",
+        "recipient_type": "individual",
+        "to": WHATSAPP_ADMIN_PHONE,
+        "type": "text",
+        "text": {
+            "preview_url": False,
+            "body": build_whatsapp_message(user_data, score, level),
+        },
+    }
+
+def post_whatsapp_payload(payload: dict) -> dict:
+    """Envía el request HTTP a Meta usando librería estándar para no agregar dependencias."""
+    endpoint = f"https://graph.facebook.com/{WHATSAPP_GRAPH_VERSION}/{WHATSAPP_PHONE_NUMBER_ID}/messages"
+    request = urllib.request.Request(
+        endpoint,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Authorization": f"Bearer {WHATSAPP_ACCESS_TOKEN}",
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=12) as response:
+            return {
+                "ok": True,
+                "status_code": response.status,
+                "body": json.loads(response.read().decode("utf-8")),
+            }
+    except urllib.error.HTTPError as error:
+        body = error.read().decode("utf-8")
+        return {
+            "ok": False,
+            "status_code": error.code,
+            "body": json.loads(body) if body else {"error": "Empty response"},
+        }
+    except urllib.error.URLError as error:
+        return {"ok": False, "status_code": None, "body": {"error": str(error.reason)}}
+
+async def send_whatsapp_notification(user_id: str, user_data: dict, score: int, level: int):
+    """Manda WhatsApp real si hay credenciales; si no, deja el evento como simulado."""
+    if not all([WHATSAPP_ACCESS_TOKEN, WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_ADMIN_PHONE]):
+        return await mock_whatsapp_notification(user_id, user_data, score, level)
+
+    try:
+        payload = build_whatsapp_payload(user_data, score, level)
+        meta_response = await asyncio.to_thread(post_whatsapp_payload, payload)
+        status = "sent" if meta_response["ok"] else "failed"
+        event_payload = {
+            "to": WHATSAPP_ADMIN_PHONE,
+            "message_type": WHATSAPP_MESSAGE_TYPE,
+            "message_preview": build_whatsapp_message(user_data, score, level),
+            "meta_response": meta_response,
+        }
+        await record_integration_event(user_id, "whatsapp", status, event_payload)
+
+        if not meta_response["ok"]:
+            logger.error("[WhatsApp] Meta rejected message: %s", meta_response)
+            return {"success": False, "status": status, "message": "WhatsApp failed", "meta_response": meta_response}
+
+        return {"success": True, "status": status, "message": "WhatsApp sent", "meta_response": meta_response}
+    except Exception as error:
+        event_payload = {
+            "to": WHATSAPP_ADMIN_PHONE,
+            "message_type": WHATSAPP_MESSAGE_TYPE,
+            "message_preview": build_whatsapp_message(user_data, score, level),
+            "error": str(error),
+        }
+        await record_integration_event(user_id, "whatsapp", "failed", event_payload)
+        logger.exception("[WhatsApp] Unexpected error sending message")
+        return {"success": False, "status": "failed", "message": str(error)}
+
 # ============ ROUTES ============
 
 @api_router.get("/")
@@ -342,7 +453,7 @@ async def submit_assessment(data: AssessmentSubmit):
     # Integraciones simuladas: dejan evidencia en Mongo y después se reemplazan por APIs reales.
     user_integration_data = {"name": user["name"], "email": user["email"], "phone": user["phone"]}
     ac_result = await mock_active_campaign(data.user_id, user_integration_data, level)
-    wa_result = await mock_whatsapp_notification(data.user_id, user_integration_data, total_score, level)
+    wa_result = await send_whatsapp_notification(data.user_id, user_integration_data, total_score, level)
     
     return {
         "success": True,

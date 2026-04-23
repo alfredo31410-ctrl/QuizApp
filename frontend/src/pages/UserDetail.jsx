@@ -33,6 +33,13 @@ const providerLabels = {
   active_campaign: "ActiveCampaign",
 };
 
+const getIntegrationPreview = (event) => {
+  if (event.payload?.message) return event.payload.message;
+  if (event.payload?.message_preview) return event.payload.message_preview;
+  if (event.payload?.meta_response) return JSON.stringify(event.payload.meta_response, null, 2);
+  return JSON.stringify(event.payload, null, 2);
+};
+
 export default function UserDetail() {
   const { userId } = useParams();
   const navigate = useNavigate();
@@ -206,7 +213,7 @@ export default function UserDetail() {
                       </span>
                     </div>
                     <pre className="whitespace-pre-wrap rounded-xl bg-black/25 p-4 text-sm leading-relaxed text-gray-200">
-                      {event.payload?.message || JSON.stringify(event.payload, null, 2)}
+                      {getIntegrationPreview(event)}
                     </pre>
                   </div>
                 ))}
