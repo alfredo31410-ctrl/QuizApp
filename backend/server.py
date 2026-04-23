@@ -6,6 +6,8 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
 import json
+import csv
+import io
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict, EmailStr
 from typing import List, Optional
@@ -96,13 +98,21 @@ class AdminToken(BaseModel):
 # ============ HELPER FUNCTIONS ============
 
 def calculate_level(score: int) -> int:
-    """Calculate level based on configured score thresholds."""
+    """Calcula el nivel final usando los rangos definidos en assessment_config.json."""
     for level in ASSESSMENT_CONFIG["levels"]:
         if level["min_score"] <= score <= level["max_score"]:
             return level["id"]
     raise HTTPException(status_code=400, detail="Score is outside configured ranges")
 
+def get_level_name(level_id: int) -> str:
+    """Devuelve el nombre comercial del nivel para reportes y notificaciones."""
+    for level in ASSESSMENT_CONFIG["levels"]:
+        if level["id"] == level_id:
+            return level["name"]
+    return f"Nivel {level_id}"
+
 def get_question_map() -> dict:
+    """Prepara un mapa de preguntas para validar respuestas rápido y sin confiar en el frontend."""
     return {
         question["id"]: {
             **question,
@@ -112,6 +122,7 @@ def get_question_map() -> dict:
     }
 
 def get_option_score(option_id: str) -> int:
+    """Convierte A/B/C/D/E en puntos según el sistema configurado."""
     score = ASSESSMENT_CONFIG["score_system"].get(option_id.upper())
     if score is None:
         raise HTTPException(status_code=400, detail=f"Invalid option id: {option_id}")
@@ -177,17 +188,59 @@ async def get_current_admin(credentials: HTTPAuthorizationCredentials = Depends(
 
 # ============ MOCK INTEGRATIONS ============
 
-async def mock_active_campaign(user_data: dict, level: int):
-    """Mock ActiveCampaign integration - simulates API call"""
-    tag = "low_level" if level <= 2 else "high_level"
-    logging.info(f"[MOCK ActiveCampaign] Sending user data: {user_data['name']}, {user_data['email']}, Level: {level}, Tag: {tag}")
-    return {"success": True, "tag": tag, "message": "User added to ActiveCampaign (MOCKED)"}
+async def record_integration_event(user_id: str, provider: str, status: str, payload: dict):
+    """Guarda evidencia de una integración simulada o real para poder auditarla después."""
+    event = {
+        "id": str(uuid.uuid4()),
+        "user_id": user_id,
+        "provider": provider,
+        "status": status,
+        "payload": payload,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.integration_events.insert_one(event)
+    return event
 
-async def mock_whatsapp_notification(user_data: dict, score: int, level: int):
-    """Mock WhatsApp notification to admin"""
-    message = f"New assessment submission:\nName: {user_data['name']}\nLevel: {level}\nScore: {score}"
-    logging.info(f"[MOCK WhatsApp] Admin notification: {message}")
-    return {"success": True, "message": "WhatsApp notification sent (MOCKED)"}
+async def mock_active_campaign(user_id: str, user_data: dict, level: int):
+    """Simula ActiveCampaign. Aquí se cambia por la llamada real cuando tengamos credenciales."""
+    tag = "low_level" if level <= 2 else "high_level"
+    payload = {
+        "name": user_data["name"],
+        "email": user_data["email"],
+        "phone": user_data["phone"],
+        "level": level,
+        "level_name": get_level_name(level),
+        "tag": tag,
+    }
+    logging.info("[MOCK ActiveCampaign] %s", payload)
+    await record_integration_event(user_id, "active_campaign", "mocked", payload)
+    return {"success": True, "status": "mocked", "tag": tag, "message": "ActiveCampaign simulated"}
+
+def build_whatsapp_message(user_data: dict, score: int, level: int) -> str:
+    """Arma el texto exacto que recibirá el admin por WhatsApp cuando se conecte la API real."""
+    return (
+        "Nuevo diagnóstico CEFIN completado\n"
+        f"Nombre: {user_data['name']}\n"
+        f"Correo: {user_data['email']}\n"
+        f"Teléfono: {user_data['phone']}\n"
+        f"Resultado: {get_level_name(level)}\n"
+        f"Nivel: {level}\n"
+        f"Puntuación: {score}"
+    )
+
+async def mock_whatsapp_notification(user_id: str, user_data: dict, score: int, level: int):
+    """Simula WhatsApp y guarda evidencia del mensaje que se mandaría."""
+    message = build_whatsapp_message(user_data, score, level)
+    payload = {
+        "to": os.environ.get("WHATSAPP_ADMIN_PHONE", "not_configured"),
+        "message": message,
+        "score": score,
+        "level": level,
+        "level_name": get_level_name(level),
+    }
+    logging.info("[MOCK WhatsApp] %s", payload)
+    await record_integration_event(user_id, "whatsapp", "mocked", payload)
+    return {"success": True, "status": "mocked", "message": "WhatsApp simulated", "message_preview": message}
 
 # ============ ROUTES ============
 
@@ -286,9 +339,10 @@ async def submit_assessment(data: AssessmentSubmit):
     for response_doc in stored_responses:
         await db.responses.insert_one(response_doc)
     
-    # Mock integrations
-    ac_result = await mock_active_campaign({"name": user["name"], "email": user["email"], "phone": user["phone"]}, level)
-    wa_result = await mock_whatsapp_notification({"name": user["name"]}, total_score, level)
+    # Integraciones simuladas: dejan evidencia en Mongo y después se reemplazan por APIs reales.
+    user_integration_data = {"name": user["name"], "email": user["email"], "phone": user["phone"]}
+    ac_result = await mock_active_campaign(data.user_id, user_integration_data, level)
+    wa_result = await mock_whatsapp_notification(data.user_id, user_integration_data, total_score, level)
     
     return {
         "success": True,
@@ -354,8 +408,12 @@ async def get_user_detail(user_id: str, admin = Depends(get_current_admin)):
         raise HTTPException(status_code=404, detail="User not found")
     
     responses = await db.responses.find({"user_id": user_id}, {"_id": 0}).to_list(100)
+    integration_events = await db.integration_events.find(
+        {"user_id": user_id},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(20)
     
-    return {"user": user, "responses": responses}
+    return {"user": user, "responses": responses, "integration_events": integration_events}
 
 @api_router.get("/admin/export")
 async def export_users_csv(
@@ -371,15 +429,18 @@ async def export_users_csv(
     
     users = await db.users.find(query, {"_id": 0}).sort("created_at", -1).to_list(10000)
     
-    # Generate CSV content
-    csv_lines = ["Name,Email,Phone,Score,Level,Status,Date"]
+    # El CSV no soporta estilos; para Excel con formato usamos el frontend y este endpoint queda como respaldo.
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["Nombre", "Correo", "Teléfono", "Puntuación", "Nivel", "Resultado", "Estado", "Fecha"])
     for user in users:
         score = user.get('score') if user.get('score') is not None else 'N/A'
         level_val = user.get('level') if user.get('level') is not None else 'N/A'
+        level_name = get_level_name(user["level"]) if user.get("level") else "N/A"
         status_val = user.get('status', 'unknown')
-        csv_lines.append(f"{user['name']},{user['email']},{user['phone']},{score},{level_val},{status_val},{user['created_at']}")
+        writer.writerow([user["name"], user["email"], user["phone"], score, level_val, level_name, status_val, user["created_at"]])
     
-    return {"csv": "\n".join(csv_lines), "count": len(users)}
+    return {"csv": output.getvalue(), "count": len(users)}
 
 # Questions endpoint
 @api_router.get("/questions")
@@ -425,6 +486,7 @@ async def startup_checks():
     await db.admins.create_index("email", unique=True)
     await db.users.create_index([("email", 1), ("status", 1)])
     await db.responses.create_index("user_id")
+    await db.integration_events.create_index([("user_id", 1), ("created_at", -1)])
 
 @app.on_event("shutdown")
 async def shutdown_db_client():

@@ -7,7 +7,6 @@ import {
   Eye, 
   SignOut, 
   Users,
-  ChartBar,
   Funnel,
   Warning
 } from "@phosphor-icons/react";
@@ -45,6 +44,24 @@ const statusColors = {
   abandoned: "bg-amber-500/20 text-amber-400 border border-amber-500/30",
 };
 
+const levelNames = {
+  1: "Contador Inseguro",
+  2: "Contador Operativo",
+  3: "Contador Técnico",
+  4: "Contador Estratégico",
+  5: "Contador Consultor",
+};
+
+const formatDate = (dateValue) => new Date(dateValue).toLocaleString("es-MX");
+
+const escapeHtml = (value) =>
+  String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
@@ -54,6 +71,7 @@ export default function AdminDashboard() {
   const [levelFilter, setLevelFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
 
+  // Todas las rutas del admin usan el token JWT guardado al iniciar sesión.
   const getAuthHeaders = () => ({
     headers: { Authorization: `Bearer ${localStorage.getItem("admin_token")}` },
   });
@@ -107,33 +125,95 @@ export default function AdminDashboard() {
     fetchUsers();
   }, [fetchAdminInfo, fetchUsers, navigate]);
 
-  const handleExportCSV = async () => {
+  const getVisibleUsers = () => {
+    if (!searchQuery) return users;
+    const query = searchQuery.toLowerCase();
+    return users.filter((user) => (
+      user.name.toLowerCase().includes(query) ||
+      user.email.toLowerCase().includes(query)
+    ));
+  };
+
+  const downloadFile = (content, fileName, mimeType) => {
+    const blob = new Blob([content], { type: mimeType });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  };
+
+  const buildStyledExcel = (rows) => {
+    const generatedAt = formatDate(new Date().toISOString());
+    const tableRows = rows.map((user) => `
+      <tr>
+        <td>${escapeHtml(user.name)}</td>
+        <td>${escapeHtml(user.email)}</td>
+        <td>${escapeHtml(user.phone)}</td>
+        <td class="center ${user.status === "completed" ? "ok" : "warn"}">${user.status === "completed" ? "Completado" : "Abandonado"}</td>
+        <td class="center">${escapeHtml(user.score ?? "-")}</td>
+        <td class="center">${escapeHtml(user.level ? `Nivel ${user.level}` : "-")}</td>
+        <td>${escapeHtml(user.level ? levelNames[user.level] : "-")}</td>
+        <td>${escapeHtml(formatDate(user.created_at))}</td>
+      </tr>
+    `).join("");
+
+    // Excel puede abrir HTML como .xls; así mantenemos estilos sin agregar dependencias pesadas.
+    return `
+      <html>
+        <head>
+          <meta charset="UTF-8" />
+          <style>
+            body { font-family: Arial, sans-serif; color: #061729; }
+            h1 { color: #950006; margin-bottom: 4px; }
+            p { color: #475569; margin-top: 0; }
+            table { border-collapse: collapse; width: 100%; }
+            th { background: #003b70; color: #ffffff; font-weight: 700; padding: 10px; border: 1px solid #d7e5ef; }
+            td { padding: 9px; border: 1px solid #d7e5ef; }
+            tr:nth-child(even) td { background: #f6efe4; }
+            .center { text-align: center; }
+            .ok { color: #166534; font-weight: 700; }
+            .warn { color: #92400e; font-weight: 700; }
+          </style>
+        </head>
+        <body>
+          <h1>CEFIN - Reporte de diagnósticos</h1>
+          <p>Generado: ${escapeHtml(generatedAt)} | Registros: ${rows.length}</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Correo</th>
+                <th>Teléfono</th>
+                <th>Estado</th>
+                <th>Puntuación</th>
+                <th>Nivel</th>
+                <th>Resultado</th>
+                <th>Fecha</th>
+              </tr>
+            </thead>
+            <tbody>${tableRows}</tbody>
+          </table>
+        </body>
+      </html>
+    `;
+  };
+
+  const handleExportExcel = () => {
     try {
-      const params = {};
-      if (levelFilter !== "all") {
-        params.level = parseInt(levelFilter, 10);
-      }
-      if (statusFilter !== "all") {
-        params.status_filter = statusFilter;
-      }
-      const response = await axios.get(`${API}/admin/export`, {
-        ...getAuthHeaders(),
-        params,
-      });
-      
-      const blob = new Blob([response.data.csv], { type: "text/csv" });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `users_export_${new Date().toISOString().split("T")[0]}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-      
-      toast.success(`Exported ${response.data.count} users`);
+      const rows = getVisibleUsers();
+      const today = new Date().toISOString().split("T")[0];
+      downloadFile(
+        buildStyledExcel(rows),
+        `cefin_diagnosticos_${today}.xls`,
+        "application/vnd.ms-excel;charset=utf-8"
+      );
+      toast.success(`Reporte Excel generado con ${rows.length} registros`);
     } catch (error) {
-      toast.error("Failed to export data");
+      toast.error("No pudimos exportar el reporte");
     }
   };
 
@@ -143,14 +223,7 @@ export default function AdminDashboard() {
     toast.success("Logged out successfully");
   };
 
-  const filteredUsers = users.filter((user) => {
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
-    return (
-      user.name.toLowerCase().includes(query) ||
-      user.email.toLowerCase().includes(query)
-    );
-  });
+  const filteredUsers = getVisibleUsers();
 
   const stats = {
     total: users.length,
@@ -283,12 +356,12 @@ export default function AdminDashboard() {
                 </SelectContent>
               </Select>
               <Button
-                data-testid="export-csv-btn"
-                onClick={handleExportCSV}
+                data-testid="export-excel-btn"
+                onClick={handleExportExcel}
                 className="btn-primary"
               >
                 <Download className="h-4 w-4 mr-2" />
-                Exportar CSV
+                Exportar Excel
               </Button>
             </div>
           </div>

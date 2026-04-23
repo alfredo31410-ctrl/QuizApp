@@ -4,6 +4,7 @@ import { Trophy, Star, Target, ChartLineUp, Rocket } from "@phosphor-icons/react
 import { Button } from "@/components/ui/button";
 
 const levelConfig = {
+  // Textos y comportamiento por nivel. Aquí cambiamos copy, color, video o Calendly por resultado.
   1: {
     title: "Contador Inseguro",
     subtitle: "Tu siguiente paso es ganar claridad y confianza",

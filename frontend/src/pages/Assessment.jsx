@@ -11,6 +11,7 @@ import axios from "axios";
 
 export default function Assessment() {
   const navigate = useNavigate();
+  // step controla la pantalla actual: 0 intro, 1 datos del usuario, 2+ preguntas.
   const [step, setStep] = useState(0);
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,6 +42,7 @@ export default function Assessment() {
   const progress = (step / (totalSteps - 1)) * 100;
 
   const validateUserInfo = () => {
+    // Validamos en frontend para dar feedback rápido antes de llamar al backend.
     const newErrors = {};
     if (!userInfo.name.trim()) newErrors.name = "El nombre es obligatorio";
     if (!userInfo.email.trim()) newErrors.email = "El correo es obligatorio";
@@ -113,6 +115,7 @@ export default function Assessment() {
 
     setSubmitting(true);
     try {
+      // Seguridad extra: aunque la UI no deja avanzar sin responder, volvemos a validar antes de enviar.
       const unansweredQuestion = questions.find((q) => !answers[q.id]?.id);
       if (unansweredQuestion) {
         const unansweredIndex = questions.findIndex((q) => q.id === unansweredQuestion.id);
@@ -127,6 +130,7 @@ export default function Assessment() {
         option_id: answers[q.id].id,
       }));
 
+      // El backend calcula la puntuación final; el frontend solo manda ids de respuestas.
       const response = await axios.post(`${API}/assessment/submit`, {
         user_id: userId,
         responses,
