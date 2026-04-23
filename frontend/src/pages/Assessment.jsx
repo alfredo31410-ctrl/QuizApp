@@ -9,8 +9,36 @@ import { API } from "@/lib/api";
 import { toast } from "sonner";
 import axios from "axios";
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 640px)");
+    const updateIsMobile = () => setIsMobile(mediaQuery.matches);
+    updateIsMobile();
+    mediaQuery.addEventListener("change", updateIsMobile);
+    return () => mediaQuery.removeEventListener("change", updateIsMobile);
+  }, []);
+
+  return isMobile;
+}
+
 export default function Assessment() {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
+  const screenMotion = isMobile
+    ? {
+        initial: { opacity: 0 },
+        animate: { opacity: 1 },
+        exit: { opacity: 0 },
+        transition: { duration: 0.14 },
+      }
+    : {
+        initial: { opacity: 0, y: 20 },
+        animate: { opacity: 1, y: 0 },
+        exit: { opacity: 0, y: -20 },
+        transition: { duration: 0.5 },
+      };
   // step controla la pantalla actual: 0 intro, 1 datos del usuario, 2+ preguntas.
   const [step, setStep] = useState(0);
   const [questions, setQuestions] = useState([]);
@@ -173,10 +201,7 @@ export default function Assessment() {
         {step === 0 && (
           <motion.div
             key="intro"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.5 }}
+            {...screenMotion}
             className="assessment-container assessment-container--hero"
           >
             <div className="hero-grid">
@@ -238,10 +263,7 @@ export default function Assessment() {
         {step === 1 && (
           <motion.div
             key="userinfo"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.5 }}
+            {...screenMotion}
             className="assessment-container"
           >
             <div className="assessment-card form-card w-full max-w-lg">
@@ -330,10 +352,7 @@ export default function Assessment() {
         {step >= 2 && questions[step - 2] && (
           <motion.div
             key={`question-${step}`}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.5 }}
+            {...screenMotion}
             className="assessment-container"
           >
             <div className="assessment-card question-card w-full max-w-3xl">
